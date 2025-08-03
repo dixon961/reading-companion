@@ -1,5 +1,5 @@
 ## Фича 4: Контейнеризация окружения для разработки
-- [ ] (DevOps): Задача 4.1: Создать `Dockerfile` в директории `backend/`.
+- [ ] (DevOps): Задача 4.1: Создать `Dockerfile` в директориях `backend/` и `frontend/` для сборки их в образы.
 - [ ] (DevOps): Задача 4.2: Создать файл `docker-compose.yml` в корне проекта.
 - [ ] (DevOps): Задача 4.3: Добавить в `docker-compose.yml` сервис `postgres`.
 - [ ] (DevOps): Задача 4.4: Добавить в `docker-compose.yml` сервис `backend`.

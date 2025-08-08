@@ -7,7 +7,8 @@ help:
 	@echo "  help     - Show this help message"
 	@echo "  setup    - Setup the development environment"
 	@echo "  build    - Build the project"
-	@echo "  run      - Run the application"
+	@echo "  run      - Run the application with docker compose"
+	@echo "  stop     - Stop the application with docker compose"
 	@echo "  test     - Run tests"
 	@echo "  clean    - Clean build artifacts"
 
@@ -23,8 +24,13 @@ build:
 
 .PHONY: run
 run:
-	@echo "Running the application..."
-	@echo "This is a placeholder for run tasks."
+	@echo "Running the application with docker compose..."
+	docker compose up -d
+
+.PHONY: stop
+stop:
+	@echo "Stopping the application..."
+	docker compose down
 
 .PHONY: test
 test:

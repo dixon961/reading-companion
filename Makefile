@@ -39,3 +39,8 @@ clean:
 run-backend:
 	@echo "Running backend server..."
 	cd backend && go run cmd/app/main.go
+
+.PHONY: run-frontend
+run-frontend:
+	@echo "Running frontend development server..."
+	cd frontend && npm run dev

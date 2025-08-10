@@ -53,3 +53,6 @@ coverage/
 *.sql.gz
 
 GEMINI.md
+.aider.chat.history.md
+.aider.input.history
+.aider.tags.cache.v4/cache.db

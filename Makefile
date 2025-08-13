@@ -21,6 +21,12 @@ build:
 	@echo "Building the project..."
 	docker compose build
 
+# Generate targets
+.PHONY: generate
+generate:
+	@echo "Generating code..."
+	cd backend && sqlc generate
+
 # Run targets
 .PHONY: run
 run:
@@ -58,7 +64,9 @@ run-frontend:
 .PHONY: migrate-up
 migrate-up:
 	@echo "Applying database migrations..."
+	migrate -path backend/migrations -database "postgres://$(DB_USER):$(DB_PASSWORD)@localhost:$(DB_PORT)/$(DB_NAME)?sslmode=disable" -verbose up
 
 .PHONY: migrate-down
 migrate-down:
 	@echo "Rolling back database migrations..."
+	migrate -path backend/migrations -database "postgres://$(DB_USER):$(DB_PASSWORD)@localhost:$(DB_PORT)/$(DB_NAME)?sslmode=disable" -verbose down

@@ -1,0 +1,118 @@
+// api/session.ts
+export interface CreateSessionResponse {
+  session_id: string;
+  name: string;
+  total_highlights: number;
+  next_step: {
+    highlight_index: number;
+    highlight_text: string;
+    question: string;
+  };
+}
+
+export interface ProcessAnswerResponse {
+  status?: string;
+  message?: string;
+  next_step?: {
+    highlight_index: number;
+    highlight_text: string;
+    question: string;
+  };
+}
+
+export interface ProcessAnswerRequest {
+  highlight_index: number;
+  user_answer: string;
+}
+
+export interface SessionData {
+  id: string;
+  name: string;
+  status: string;
+  total_highlights: number;
+  next_step: {
+    highlight_index: number;
+    highlight_text: string;
+    question: string;
+  };
+}
+
+export interface RegenerateQuestionRequest {
+  highlight_index: number;
+}
+
+export interface RegenerateQuestionResponse {
+  new_question: string;
+}
+
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9090/api';
+
+export const createSession = async (file: File, sessionName?: string): Promise<CreateSessionResponse> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (sessionName) {
+    formData.append('session_name', sessionName);
+  }
+
+  const response = await fetch(`${API_BASE_URL}/sessions`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to create session: ${errorText}`);
+  }
+
+  return response.json();
+};
+
+export const getSession = async (sessionId: string): Promise<SessionData> => {
+  const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to get session: ${errorText}`);
+  }
+
+  return response.json();
+};
+
+export const processAnswer = async (sessionId: string, data: ProcessAnswerRequest): Promise<ProcessAnswerResponse> => {
+  const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/process`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to process answer: ${errorText}`);
+  }
+
+  return response.json();
+};
+
+export const regenerateQuestion = async (sessionId: string, data: RegenerateQuestionRequest): Promise<RegenerateQuestionResponse> => {
+  const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/regenerate_question`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to regenerate question: ${errorText}`);
+  }
+
+  return response.json();
+};

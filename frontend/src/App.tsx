@@ -1,14 +1,18 @@
-import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import SessionPage from './pages/SessionPage';
 import './App.css';
 
 function App() {
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>Interactive Reading Companion</h1>
-        <p>Transform your book highlights into meaningful insights</p>
-      </header>
-    </div>
+    <Router>
+      <div className="app">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/session/:sessionId" element={<SessionPage />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
 

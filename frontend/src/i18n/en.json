@@ -62,6 +62,8 @@
     "backToHome": "Back to History",
     "switchToMarkdown": "Switch to Markdown View",
     "switchToJSON": "Switch to JSON View",
+    "switchToHighlights": "Show Answers Only",
+    "noAnswerProvided": "No answer provided",
     "downloadError": "Failed to download summary. Please try again."
   },
   "complete": {

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getSession, exportSession, downloadFile, getSessionContent, getSessionMarkdown } from '../api/session';
 import TwoPanelLayout from '../components/TwoPanelLayout';
 import MarkdownRenderer from '../components/MarkdownRenderer';
+import ReadOnlyHighlights from '../components/ReadOnlyHighlights';
 import type { SessionData, SessionContent } from '../api/session';
 import { useLanguage } from '../i18n/LanguageContext';
 
@@ -63,7 +64,7 @@ const SessionReviewPage: React.FC = () => {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [sessionContent, setSessionContent] = useState<SessionContent | null>(null);
   const [sessionMarkdown, setSessionMarkdown] = useState<string>('');
-  const [viewMode, setViewMode] = useState<'json' | 'markdown'>('markdown'); // Toggle between JSON and Markdown
+  const [viewMode, setViewMode] = useState<'highlights' | 'json' | 'markdown'>('highlights'); // Toggle between Highlights, JSON and Markdown
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -119,8 +120,32 @@ const SessionReviewPage: React.FC = () => {
     navigate('/');
   };
 
+  const getViewModeText = () => {
+    switch (viewMode) {
+      case 'highlights':
+        return t('review.switchToJSON');
+      case 'json':
+        return t('review.switchToMarkdown');
+      case 'markdown':
+        return t('review.switchToHighlights');
+      default:
+        return t('review.switchToJSON');
+    }
+  };
+
   const toggleViewMode = () => {
-    setViewMode(viewMode === 'json' ? 'markdown' : 'json');
+    setViewMode(prevMode => {
+      switch (prevMode) {
+        case 'highlights':
+          return 'json';
+        case 'json':
+          return 'markdown';
+        case 'markdown':
+          return 'highlights';
+        default:
+          return 'highlights';
+      }
+    });
   };
 
   if (isLoading) {
@@ -178,12 +203,14 @@ const SessionReviewPage: React.FC = () => {
               onClick={toggleViewMode} 
               className="toggle-view-btn"
             >
-              {viewMode === 'json' ? t('review.switchToMarkdown') : t('review.switchToJSON')}
+              {getViewModeText()}
             </button>
           </div>
           
           <div className="review-content">
-            {viewMode === 'json' ? (
+            {viewMode === 'highlights' ? (
+              <ReadOnlyHighlights content={sessionContent} />
+            ) : viewMode === 'json' ? (
               <JSONRenderer content={sessionContent} language={language} />
             ) : (
               <MarkdownRenderer markdown={sessionMarkdown} />

@@ -1838,6 +1838,34 @@
   margin: 1.5rem 0;
 }
 
+/* Compact Answers Styles */
+.answers-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.answer-block {
+  margin-bottom: 0.75rem;
+}
+
+.answer-text.compact,
+.unanswered-text.compact {
+  margin: 0;
+  padding: 0.5rem 0;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  color: #444;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.unanswered-text.compact {
+  color: #999;
+  font-style: italic;
+  padding: 0.5rem 0;
+}
+
 /* Sidebar Header Styles */
 
 .sidebar-header {

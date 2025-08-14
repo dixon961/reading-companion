@@ -62,6 +62,8 @@
     "backToHome": "Вернуться к истории",
     "switchToMarkdown": "Переключиться на просмотр Markdown",
     "switchToJSON": "Переключиться на просмотр JSON",
+    "switchToHighlights": "Показать только ответы",
+    "noAnswerProvided": "Ответ не предоставлен",
     "downloadError": "Не удалось скачать конспект. Пожалуйста, попробуйте еще раз."
   },
   "complete": {

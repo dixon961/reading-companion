@@ -159,6 +159,40 @@ func (s *SessionService) GetHighlightsBySession(sessionID uuid.UUID) ([]*models.
 
 // parseHighlights parses the uploaded file into a slice of highlight strings
 func (s *SessionService) parseHighlights(file multipart.File) ([]string, error) {
+	// Reset file pointer to beginning
+	file.Seek(0, 0)
+
+	// Try to detect the file format by reading the first few lines
+	scanner := bufio.NewScanner(file)
+	var firstLines []string
+	lineCount := 0
+	
+	// Read first 10 lines to determine format
+	for scanner.Scan() && lineCount < 10 {
+		firstLines = append(firstLines, scanner.Text())
+		lineCount++
+	}
+	
+	// Reset file pointer again for actual parsing
+	file.Seek(0, 0)
+	
+	// Check if it's the kon-tiki format (has "время：" marker)
+	isKonTikiFormat := false
+	for _, line := range firstLines {
+		if strings.Contains(line, "время：") {
+			isKonTikiFormat = true
+			break
+		}
+	}
+	
+	if isKonTikiFormat {
+		return s.parseKonTikiFormat(file)
+	}
+	return s.parseSimpleFormat(file)
+}
+
+// parseSimpleFormat parses the simple format where highlights are separated by empty lines
+func (s *SessionService) parseSimpleFormat(file multipart.File) ([]string, error) {
 	var highlights []string
 
 	// Reset file pointer to beginning
@@ -190,6 +224,92 @@ func (s *SessionService) parseHighlights(file multipart.File) ([]string, error) 
 	// Don't forget the last highlight if file doesn't end with empty line
 	if currentHighlight.Len() > 0 {
 		highlights = append(highlights, currentHighlight.String())
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("error reading file: %w", err)
+	}
+
+	return highlights, nil
+}
+
+// parseKonTikiFormat parses the kon-tiki format which has structured entries
+func (s *SessionService) parseKonTikiFormat(file multipart.File) ([]string, error) {
+	var highlights []string
+
+	// Reset file pointer to beginning
+	file.Seek(0, 0)
+
+	scanner := bufio.NewScanner(file)
+	var currentContent strings.Builder
+	inContentSection := false
+
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		// Check if we're starting a new entry
+		if strings.Contains(line, "время：") {
+			// If we have content from previous entry, save it
+			if currentContent.Len() > 0 {
+				content := strings.TrimSpace(currentContent.String())
+				if content != "" {
+					highlights = append(highlights, content)
+				}
+				currentContent.Reset()
+			}
+			inContentSection = false
+			continue
+		}
+
+		// Check for content section start marker
+		if strings.Contains(line, "【Контент】") {
+			inContentSection = true
+			// Remove the section marker and add the rest of the line if it exists
+			contentStart := strings.Index(line, "【Контент】") + len("【Контент】")
+			if contentStart < len(line) {
+				trimmedLine := strings.TrimSpace(line[contentStart:])
+				if trimmedLine != "" {
+					currentContent.WriteString(trimmedLine)
+					// Add space if content is not empty
+					if trimmedLine != "" {
+						currentContent.WriteString(" ")
+					}
+				}
+			}
+			continue
+		}
+
+		// Check for content section end markers
+		if strings.Contains(line, "【Заметки】") || strings.HasPrefix(line, "-------------------") {
+			// End of content section, save current content
+			if currentContent.Len() > 0 {
+				content := strings.TrimSpace(currentContent.String())
+				if content != "" {
+					highlights = append(highlights, content)
+				}
+				currentContent.Reset()
+			}
+			inContentSection = false
+			continue
+		}
+
+		// Add line to content if we're in content section
+		if inContentSection {
+			trimmedLine := strings.TrimSpace(line)
+			if trimmedLine != "" {
+				currentContent.WriteString(trimmedLine)
+				// Add space after each line for proper joining
+				currentContent.WriteString(" ")
+			}
+		}
+	}
+
+	// Don't forget the last highlight if there's content and we haven't saved it yet
+	if currentContent.Len() > 0 {
+		content := strings.TrimSpace(currentContent.String())
+		if content != "" {
+			highlights = append(highlights, content)
+		}
 	}
 
 	if err := scanner.Err(); err != nil {

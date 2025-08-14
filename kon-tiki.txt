@@ -1,77 +1,4 @@
-package service
-
-import (
-	"strings"
-	"testing"
-	
-	"github.com/stretchr/testify/assert"
-)
-
-// mockFile is a simple implementation of multipart.File for testing
-type mockFile struct {
-	*strings.Reader
-}
-
-func (m *mockFile) Close() error {
-	return nil
-}
-
-// TestSessionService_validateHighlights tests the validateHighlights method
-func TestSessionService_validateHighlights(t *testing.T) {
-	service := &SessionService{}
-	
-	// Test with valid highlights (more than 3)
-	validHighlights := []string{"Highlight 1", "Highlight 2", "Highlight 3", "Highlight 4"}
-	err := service.validateHighlights(validHighlights)
-	assert.NoError(t, err)
-	
-	// Test with invalid highlights (less than 3)
-	invalidHighlights := []string{"Highlight 1", "Highlight 2"}
-	err = service.validateHighlights(invalidHighlights)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "minimum 3 highlights required")
-	
-	// Test with empty highlights
-	emptyHighlights := []string{}
-	err = service.validateHighlights(emptyHighlights)
-	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "minimum 3 highlights required")
-}
-
-// TestSessionService_parseHighlights tests the parseHighlights method
-func TestSessionService_parseHighlights(t *testing.T) {
-	service := &SessionService{}
-	
-	// Test with valid highlights
-	validContent := "First highlight\n\nSecond highlight\n\nThird highlight"
-	reader := &mockFile{strings.NewReader(validContent)}
-	highlights, err := service.parseHighlights(reader)
-	
-	assert.NoError(t, err)
-	assert.Len(t, highlights, 3)
-	assert.Equal(t, "First highlight", highlights[0])
-	assert.Equal(t, "Second highlight", highlights[1])
-	assert.Equal(t, "Third highlight", highlights[2])
-	
-	// Test with empty content
-	emptyReader := &mockFile{strings.NewReader("")}
-	highlights, err = service.parseHighlights(emptyReader)
-	
-	assert.NoError(t, err)
-	assert.Len(t, highlights, 0)
-	
-	// Test with content that has extra newlines
-	extraNewlines := "\n\nFirst highlight\n\n\n\nSecond highlight\n\n\n"
-	reader = &mockFile{strings.NewReader(extraNewlines)}
-	highlights, err = service.parseHighlights(reader)
-	
-	assert.NoError(t, err)
-	assert.Len(t, highlights, 2)
-	assert.Equal(t, "First highlight", highlights[0])
-	assert.Equal(t, "Second highlight", highlights[1])
-	
-	// Test with kon-tiki format
-	konTikiContent := `Заметка BOOX | <<Высоконагруженные приложения. Программирование, масштабирование, поддержка - Мартин Клеппман>>
+Заметка BOOX | <<Высоконагруженные приложения. Программирование, масштабирование, поддержка - Мартин Клеппман>>
 Kon_Tiki2
 
 время：2025-07-07 20:03
@@ -83,6 +10,16 @@ SELECT * FROM bookings
  end_time > '2018-01-01 12:00' AND
  start_time < '2018-01-01 13:00';
 Предикатная блокировка ограничивает доступ следующим образом.
+ Транзакция A для чтения каких-либо объектов, соответствующих определенному условию, как в вышеприведенном запросе SELECT, должна установить предикатную разделяемую блокировку в соответствии с условиями запроса. Если 
+у другой транзакции B уже установлена монопольная блокировка на любой 
+соответствующий этим условиям объект, то транзакции A придется дождаться 
+освобождения блокировки транзакцией B и лишь затем выполнить свой запрос.
+ Транзакция A для вставки, обновления или удаления каких-либо объектов 
+должна сначала проверить, попадает ли старое или новое значение под условия 
+какой-либо существующей предикатной блокировки. При наличии таковой 
+у удерживаемой транзакции B транзакция A сможет продолжить работу только 
+после фиксации или прерывания транзакции B.
+Основная
 【Заметки】1
 -------------------
 
@@ -126,20 +63,4 @@ SELECT * FROM bookings
 чего-то плохого (например, не была ли нарушена изоляция). Если да, то транзакция 
 прерывается и ее выполнение приходится повторять еще раз. Допускается фиксация только выполненных сериализуемым образом транзакций
 【Заметки】6
--------------------`
-	
-	konTikiReader := &mockFile{strings.NewReader(konTikiContent)}
-	highlights, err = service.parseHighlights(konTikiReader)
-	
-	assert.NoError(t, err)
-	assert.Len(t, highlights, 6) // Should have 6 highlights from the kon-tiki format
-	
-	// Check that we have the expected number of highlights
-	assert.Len(t, highlights, 6)
-	
-	// Check the content of the first highlight starts with expected text
-	assert.Contains(t, highlights[0], "По сути, нам нужна предикатная блокировка (predicate lock) [3]")
-	
-	// Check the content of the second highlight
-	assert.Contains(t, highlights[1], "идея заключается в применимости предикатных блокировок даже к тем объектам")
-}
+-------------------

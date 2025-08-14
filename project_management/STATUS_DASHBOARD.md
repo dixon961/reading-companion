@@ -25,6 +25,7 @@
 ✅ Session Editing/Deletion
 ✅ Session Completion Page
 ✅ Session Content Display
+✅ Toggle Between Rendering Modes
 
 ### Infrastructure
 ✅ Docker Configuration

@@ -7,9 +7,11 @@
 - Markdown export backend
 - File download frontend
 - Enhanced navigation after session completion
+- Toggle view between JSON and Markdown rendering on session review page
 
 ### Changed
 - Improved session completion workflow with export functionality
+- Enhanced session review page with dual rendering options
 
 ## [1.0.0] - 2025-08-14
 

@@ -5,6 +5,50 @@ import TwoPanelLayout from '../components/TwoPanelLayout';
 import MarkdownRenderer from '../components/MarkdownRenderer';
 import type { SessionData, SessionContent } from '../api/session';
 
+// Component to render session content from JSON
+const JSONRenderer: React.FC<{ content: SessionContent }> = ({ content }) => {
+  return (
+    <div className="json-renderer">
+      <header className="json-header">
+        <h1>{content.session.name}</h1>
+        <p className="session-date">
+          Дата разбора: {new Date(content.session.created_at).toLocaleDateString('ru-RU')}
+        </p>
+      </header>
+      
+      <div className="content-separator"></div>
+      
+      <div className="highlights-container">
+        {content.highlights.map((highlight, index) => (
+          <div key={index} className="highlight-block">
+            <blockquote className="highlight-text">
+              {highlight.text}
+            </blockquote>
+            
+            <div className="interaction-container">
+              <p className="question-text">
+                <strong>Вопрос ассистента:</strong> {highlight.question}
+              </p>
+              
+              {highlight.answered ? (
+                <div className="answer-container">
+                  <p className="answer-text">{highlight.answer}</p>
+                </div>
+              ) : (
+                <p className="unanswered-text">Ответ не предоставлен</p>
+              )}
+            </div>
+            
+            {index < content.highlights.length - 1 && (
+              <div className="content-separator"></div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const SessionReviewPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
@@ -12,6 +56,7 @@ const SessionReviewPage: React.FC = () => {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [sessionContent, setSessionContent] = useState<SessionContent | null>(null);
   const [sessionMarkdown, setSessionMarkdown] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'json' | 'markdown'>('markdown'); // Toggle between JSON and Markdown
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,7 +73,7 @@ const SessionReviewPage: React.FC = () => {
         const sessionInfo: SessionData = await getSession(sessionId);
         setSessionData(sessionInfo);
         
-        // Then get the JSON content for any additional processing if needed
+        // Then get the JSON content for review
         const content: SessionContent = await getSessionContent(sessionId);
         setSessionContent(content);
         
@@ -60,6 +105,10 @@ const SessionReviewPage: React.FC = () => {
 
   const handleNewSession = () => {
     navigate('/');
+  };
+
+  const toggleViewMode = () => {
+    setViewMode(viewMode === 'json' ? 'markdown' : 'json');
   };
 
   if (isLoading) {
@@ -112,8 +161,21 @@ const SessionReviewPage: React.FC = () => {
         </header>
         
         <main className="review-main">
+          <div className="review-controls">
+            <button 
+              onClick={toggleViewMode} 
+              className="toggle-view-btn"
+            >
+              Switch to {viewMode === 'json' ? 'Markdown' : 'JSON'} View
+            </button>
+          </div>
+          
           <div className="review-content">
-            <MarkdownRenderer markdown={sessionMarkdown} />
+            {viewMode === 'json' ? (
+              <JSONRenderer content={sessionContent} />
+            ) : (
+              <MarkdownRenderer markdown={sessionMarkdown} />
+            )}
           </div>
           
           <div className="review-actions">

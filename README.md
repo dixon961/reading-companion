@@ -20,6 +20,7 @@ This application transforms the passive process of reviewing book highlights int
 - Advanced session completion workflows
 - Enhanced UI/UX polish
 - Session content review with formatted display
+- Toggle between JSON and Markdown rendering modes
 
 ## Technical Stack
 
@@ -43,8 +44,14 @@ This application transforms the passive process of reviewing book highlights int
 - Session renaming and deletion
 - Session continuation from any point
 - Review of completed sessions with formatted content display
+- Toggle between JSON and Markdown rendering modes for session review
 - Responsive web interface
 - Two-panel layout for efficient workflow
+
+### 🔄 Upcoming Features
+- Full Markdown export functionality
+- Enhanced session completion workflows
+- Additional session management capabilities
 
 ## Getting Started
 

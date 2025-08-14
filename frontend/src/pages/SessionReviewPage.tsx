@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getSession, exportSession, downloadFile } from '../api/session';
+import { getSession, exportSession, downloadFile, getSessionContent } from '../api/session';
 import TwoPanelLayout from '../components/TwoPanelLayout';
-import type { SessionData } from '../api/session';
+import MarkdownRenderer from '../components/MarkdownRenderer';
+import type { SessionData, SessionContent } from '../api/session';
 
 const SessionReviewPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
+  const [sessionContent, setSessionContent] = useState<SessionContent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,8 +23,13 @@ const SessionReviewPage: React.FC = () => {
       }
       
       try {
+        // First get basic session data
         const sessionInfo: SessionData = await getSession(sessionId);
         setSessionData(sessionInfo);
+        
+        // Then get the full content for review
+        const content: SessionContent = await getSessionContent(sessionId);
+        setSessionContent(content);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load session data');
       } finally {
@@ -77,7 +84,7 @@ const SessionReviewPage: React.FC = () => {
     );
   }
 
-  if (!sessionData) {
+  if (!sessionData || !sessionContent) {
     return (
       <TwoPanelLayout>
         <div className="session-review-page">
@@ -101,14 +108,7 @@ const SessionReviewPage: React.FC = () => {
         
         <main className="review-main">
           <div className="review-content">
-            <h2>Session Summary</h2>
-            <p>Total highlights processed: {sessionData.total_highlights}</p>
-            
-            {/* TODO: Add actual session review content here */}
-            <div className="review-placeholder">
-              <p>Detailed session review content will be displayed here.</p>
-              <p>This will include all the questions and answers from your session.</p>
-            </div>
+            <MarkdownRenderer content={sessionContent} />
           </div>
           
           <div className="review-actions">

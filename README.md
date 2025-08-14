@@ -15,10 +15,11 @@ This application transforms the passive process of reviewing book highlights int
 - Session editing and deletion
 - Basic UI for all core workflows
 
-🔄 **In Progress**
+✅ **Advanced Features Implemented**
 - Markdown export functionality
 - Advanced session completion workflows
 - Enhanced UI/UX polish
+- Session content review with formatted display
 
 ## Technical Stack
 
@@ -41,14 +42,9 @@ This application transforms the passive process of reviewing book highlights int
 - LLM-powered question generation
 - Session renaming and deletion
 - Session continuation from any point
-- Review of completed sessions
+- Review of completed sessions with formatted content display
 - Responsive web interface
 - Two-panel layout for efficient workflow
-
-### 🔄 Upcoming Features
-- Full Markdown export functionality
-- Enhanced session completion workflows
-- Additional session management capabilities
 
 ## Getting Started
 

@@ -546,3 +546,79 @@ func (s *SessionService) ExportSessionAsMarkdown(sessionID uuid.UUID) (string, e
 	// Generate markdown
 	return markdown.GenerateMarkdown(modelSession, modelHighlights, interactions), nil
 }
+
+// GetSessionContentAsJSON returns the content of a completed session in JSON format
+func (s *SessionService) GetSessionContentAsJSON(sessionID uuid.UUID) (*models.SessionContent, error) {
+	// Get the session
+	session, err := s.repo.GetSession(context.Background(), pgtype.UUID{Bytes: sessionID, Valid: true})
+	if err != nil {
+		return nil, fmt.Errorf("session not found: %w", err)
+	}
+
+	// Check if session is completed
+	if session.Status != "completed" {
+		return nil, fmt.Errorf("session not completed: only completed sessions can be viewed")
+	}
+
+	// Get highlights for this session
+	highlights, err := s.repo.GetHighlightsBySession(context.Background(), pgtype.UUID{Bytes: sessionID, Valid: true})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get highlights: %w", err)
+	}
+
+	// Get interactions for all highlights
+	interactions := make(map[string]*models.Interaction)
+	for _, highlight := range highlights {
+		interaction, err := s.repo.GetInteractionByHighlight(context.Background(), highlight.ID)
+		if err != nil {
+			// Skip if no interaction found for this highlight
+			continue
+		}
+
+		interactions[uuid.UUID(highlight.ID.Bytes).String()] = &models.Interaction{
+			ID:          uuid.UUID(interaction.ID.Bytes),
+			HighlightID: uuid.UUID(interaction.HighlightID.Bytes),
+			Question:    interaction.Question,
+			Answer: sql.NullString{
+				String: interaction.Answer.String,
+				Valid:  interaction.Answer.Valid,
+			},
+			CreatedAt: interaction.CreatedAt.Time.Format(time.RFC3339),
+			UpdatedAt: interaction.UpdatedAt.Time.Format(time.RFC3339),
+		}
+	}
+
+	// Create highlight content
+	highlightContents := make([]models.HighlightContent, len(highlights))
+	for i, highlight := range highlights {
+		highlightContent := models.HighlightContent{
+			Text:     highlight.Text,
+			Question: "No question available",
+			Answer:   "",
+			Answered: false,
+		}
+
+		// Add interaction data if it exists
+		if interaction, exists := interactions[uuid.UUID(highlight.ID.Bytes).String()]; exists {
+			highlightContent.Question = interaction.Question
+			if interaction.Answer.Valid {
+				highlightContent.Answer = interaction.Answer.String
+				highlightContent.Answered = true
+			}
+		}
+
+		highlightContents[i] = highlightContent
+	}
+
+	// Create session content
+	sessionContent := &models.SessionContent{
+		Session: models.SessionContentInfo{
+			ID:        uuid.UUID(session.ID.Bytes).String(),
+			Name:      session.Name,
+			CreatedAt: session.CreatedAt.Time.Format(time.RFC3339),
+		},
+		Highlights: highlightContents,
+	}
+
+	return sessionContent, nil
+}

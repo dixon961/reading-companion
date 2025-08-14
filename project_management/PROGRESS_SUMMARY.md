@@ -2,15 +2,6 @@
 
 ## Completed Features
 
-### ✅ UI/UX Features (06-Finalization)
-
-#### ✅ Feature 1: Responsive Design for Mobile Devices (01-Feature-Responsive-Design.md)
-- [x] (Frontend): Задача 1.1: Проверить и адаптировать верстку `HomePage.tsx`, включая список сессий и модальное окно, для мобильных экранов.
-- [x] (Frontend): Задача 1.2: Проверить и адаптировать верстку `SessionPage.tsx`. Убедиться, что поле ввода текста и кнопки удобны для использования на сенсорных экранах.
-- [x] (Frontend): Задача 1.3: Проверить и адаптировать верстку `SessionReviewPage.tsx`, обеспечив читаемость диалога на узких экранах.
-- [x] (Frontend): Задача 1.4: Проверить и адаптировать верстку `SessionCompletePage.tsx`.
-- [x] (Frontend): Задача 1.5: Использовать CSS media queries для применения стилей в зависимости от ширины экрана.
-
 ### ✅ Session Management Features (04-Session-Management)
 
 #### ✅ Feature 1: Session History List (01-Feature-Session-History-List.md)
@@ -64,6 +55,13 @@
 - [x] (Frontend): Задача 2.6: Обновить стили для реализации двухпанельного дизайна.
 - [x] (Frontend): Задача 2.7: Обеспечить адаптивность нового макета для мобильных устройств.
 
+#### ✅ Feature 2: Responsive Design for Mobile Devices (01-Feature-Responsive-Design.md)
+- [x] (Frontend): Задача 1.1: Проверить и адаптировать верстку `HomePage.tsx`, включая список сессий и модальное окно, для мобильных экранов.
+- [x] (Frontend): Задача 1.2: Проверить и адаптировать верстку `SessionPage.tsx`. Убедиться, что поле ввода текста и кнопки удобны для использования на сенсорных экранах.
+- [x] (Frontend): Задача 1.3: Проверить и адаптировать верстку `SessionReviewPage.tsx`, обеспечив читаемость диалога на узких экранах.
+- [x] (Frontend): Задача 1.4: Проверить и адаптировать верстку `SessionCompletePage.tsx`.
+- [x] (Frontend): Задача 1.5: Использовать CSS media queries для применения стилей в зависимости от ширины экрана.
+
 ### ✅ Session Completion and Export Features (05-Session-Completion-Export)
 
 #### ✅ Feature 1: Session Complete UI (01-Feature-Session-Complete-UI.md)
@@ -72,6 +70,24 @@
 - [x] (Frontend): Задача 1.3: Реализовать перенаправление на `/complete/{sessionId}`.
 - [x] (Frontend): Задача 1.4: Сверстать сообщение "Сессия успешно завершена!".
 - [x] (Frontend): Задача 1.5: Добавить кнопки "Скачать конспект" и "Начать новую сессию".
+
+### ✅ Session Review Feature (07-Session-Review-Feature)
+
+#### ✅ Feature 1: Session Content as JSON (01-Feature-Session-Content-JSON.md)
+- [x] (Backend): Задача 1.1: Создать обработчик для `GET /api/sessions/{session_id}/content`.
+- [x] (Backend): Задача 1.2: Добавить в `SessionService` метод `GetSessionContentAsJSON`.
+- [x] (Backend): Задача 1.3: Реализовать получение всех данных сессии из БД, включая пометки и взаимодействия.
+- [x] (Backend): Задача 1.4: Реализовать преобразование данных в структуру JSON, соответствующую структуре Markdown.
+- [x] (Backend): Задача 1.5: Настроить ответ API с `Content-Type: application/json`.
+- [x] (Backend): Задача 1.6: Добавить проверку на статус `completed`.
+- [x] (Frontend): Задача 2.1: Создать API-функцию для `GET /api/sessions/{sessionId}/content`.
+- [x] (Frontend): Задача 2.2: Создать компонент `MarkdownRenderer` для отображения форматированного Markdown-контента.
+- [x] (Frontend): Задача 2.3: На `SessionReviewPage` реализовать запрос данных сессии в формате JSON.
+- [x] (Frontend): Задача 2.4: Заменить заглушку на отображение реального содержимого сессии.
+- [x] (Frontend): Задача 2.5: Стилизовать отображение контента для улучшения читаемости.
+- [x] (Frontend): Задача 3.1: Добавить кнопку "Просмотреть сессию" на главной странице для завершенных сессий.
+- [x] (Frontend): Задача 3.2: Улучшить навигацию между страницами сессии.
+- [x] (Frontend): Задача 3.3: Добавить возможность возвращаться к списку сессий из страницы просмотра.
 
 ## Features In Progress
 

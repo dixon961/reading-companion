@@ -33,6 +33,20 @@ export interface SessionMetadata {
   updated_at: string;
 }
 
+export interface SessionContent {
+  session: {
+    id: string;
+    name: string;
+    created_at: string;
+  };
+  highlights: Array<{
+    text: string;
+    question: string;
+    answer: string;
+    answered: boolean;
+  }>;
+}
+
 export interface SessionData {
   id: string;
   name: string;
@@ -228,4 +242,21 @@ export const downloadFile = (content: string, filename: string) => {
   // Clean up
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+};
+
+// Get session content as JSON for review
+export const getSessionContent = async (sessionId: string): Promise<SessionContent> => {
+  const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/content`, {
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to get session content: ${errorText}`);
+  }
+
+  return response.json();
 };

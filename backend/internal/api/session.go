@@ -362,6 +362,46 @@ func (h *SessionHandler) ExportSession(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(markdownContent))
 }
 
+// GetSessionContent handles GET /api/sessions/{session_id}/content
+func (h *SessionHandler) GetSessionContent(w http.ResponseWriter, r *http.Request) {
+	// Extract session ID from URL path parameters
+	vars := mux.Vars(r)
+	sessionIDStr, ok := vars["session_id"]
+	if !ok {
+		http.Error(w, "session ID is required", http.StatusBadRequest)
+		return
+	}
+
+	sessionID, err := uuid.Parse(sessionIDStr)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("invalid session ID: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// Get session content using service
+	sessionContent, err := h.sessionService.GetSessionContentAsJSON(sessionID)
+	if err != nil {
+		// Handle not found errors
+		if strings.Contains(err.Error(), "not found") {
+			http.Error(w, fmt.Sprintf("session not found: %v", err), http.StatusNotFound)
+			return
+		}
+		// Handle status errors
+		if strings.Contains(err.Error(), "not completed") {
+			http.Error(w, fmt.Sprintf("session not completed: %v", err), http.StatusBadRequest)
+			return
+		}
+		// Handle other errors
+		http.Error(w, fmt.Sprintf("failed to get session content: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Send successful response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(sessionContent)
+}
+
 // ListSessions handles GET /api/sessions
 func (h *SessionHandler) ListSessions(w http.ResponseWriter, r *http.Request) {
 	// Get sessions using service

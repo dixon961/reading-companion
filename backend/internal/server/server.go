@@ -81,6 +81,7 @@ func NewServer(port string) *Server {
 	router.HandleFunc("/api/sessions/{session_id}", sessionHandler.UpdateSessionName).Methods("PATCH")
 	router.HandleFunc("/api/sessions/{session_id}", sessionHandler.DeleteSession).Methods("DELETE")
 	router.HandleFunc("/api/sessions/{session_id}/export", sessionHandler.ExportSession).Methods("GET")
+	router.HandleFunc("/api/sessions/{session_id}/content", sessionHandler.GetSessionContent).Methods("GET")
 	router.HandleFunc("/api/sessions/{session_id}/process", sessionHandler.ProcessAnswer).Methods("POST")
 	router.HandleFunc("/api/sessions/{session_id}/regenerate_question", sessionHandler.RegenerateQuestion).Methods("POST")
 

@@ -1523,3 +1523,149 @@
     padding: 4rem;
   }
 }
+
+/* Markdown Renderer Styles */
+.markdown-renderer {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.markdown-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.markdown-header h1 {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1.5rem;
+}
+
+.session-date {
+  color: #666;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.content-separator {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 1.5rem 0;
+}
+
+.highlight-block {
+  margin-bottom: 1.5rem;
+}
+
+.highlight-text {
+  margin: 0 0 1rem 0;
+  padding: 1rem;
+  border-left: 4px solid #4caf50;
+  background-color: #f9f9f9;
+  font-style: italic;
+  color: #444;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.interaction-container {
+  padding: 0 1rem;
+}
+
+.question-text {
+  margin: 0 0 1rem 0;
+  font-weight: 500;
+  color: #333;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.answer-container {
+  margin-bottom: 1rem;
+}
+
+.answer-text {
+  margin: 0;
+  padding: 1rem;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  color: #444;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.unanswered-text {
+  margin: 0;
+  padding: 1rem;
+  background-color: #fff3e0;
+  border: 1px solid #ffe0b2;
+  border-radius: 4px;
+  color: #e65100;
+  font-size: 1rem;
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (min-width: 576px) {
+  .markdown-renderer {
+    padding: 1.5rem;
+  }
+
+  .markdown-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .session-date {
+    font-size: 1.1rem;
+  }
+
+  .highlight-text {
+    font-size: 1.05rem;
+  }
+
+  .question-text {
+    font-size: 1.05rem;
+  }
+
+  .answer-text,
+  .unanswered-text {
+    font-size: 1.05rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .markdown-renderer {
+    padding: 2rem;
+  }
+
+  .markdown-header h1 {
+    font-size: 2rem;
+  }
+
+  .session-date {
+    font-size: 1.2rem;
+  }
+
+  .highlight-text {
+    font-size: 1.1rem;
+    padding: 1.25rem;
+  }
+
+  .interaction-container {
+    padding: 0 1.25rem;
+  }
+
+  .question-text {
+    font-size: 1.1rem;
+  }
+
+  .answer-text,
+  .unanswered-text {
+    font-size: 1.1rem;
+    padding: 1.25rem;
+  }
+}

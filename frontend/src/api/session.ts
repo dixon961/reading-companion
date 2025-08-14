@@ -85,6 +85,14 @@ export const createSession = async (file: File, sessionName?: string): Promise<C
 
   if (!response.ok) {
     const errorText = await response.text();
+    // Handle specific error cases
+    if (response.status === 400) {
+      if (errorText.includes("Файл пуст")) {
+        throw new Error("Файл пуст или имеет неверный формат");
+      } else if (errorText.includes("Для начала сессии необходимо как минимум 3 пометки")) {
+        throw new Error("Для начала сессии необходимо как минимум 3 пометки");
+      }
+    }
     throw new Error(`Failed to create session: ${errorText}`);
   }
 
@@ -158,6 +166,10 @@ export const processAnswer = async (sessionId: string, data: ProcessAnswerReques
 
   if (!response.ok) {
     const errorText = await response.text();
+    // Handle 503 Service Unavailable errors
+    if (response.status === 503) {
+      throw new Error("LLM service unavailable. Please try again later.");
+    }
     throw new Error(`Failed to process answer: ${errorText}`);
   }
 
@@ -175,6 +187,10 @@ export const regenerateQuestion = async (sessionId: string, data: RegenerateQues
 
   if (!response.ok) {
     const errorText = await response.text();
+    // Handle 503 Service Unavailable errors
+    if (response.status === 503) {
+      throw new Error("LLM service unavailable. Please try again later.");
+    }
     throw new Error(`Failed to regenerate question: ${errorText}`);
   }
 

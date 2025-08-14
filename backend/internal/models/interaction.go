@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/google/uuid"
 	"database/sql"
+	"github.com/google/uuid"
 )
 
 // Interaction represents a question-answer interaction for a highlight

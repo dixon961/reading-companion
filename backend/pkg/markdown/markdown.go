@@ -26,7 +26,7 @@ func GenerateMarkdown(session *models.Session, highlights []*models.Highlight, i
 		if interaction, exists := interactions[highlight.ID.String()]; exists {
 			// Add the question
 			sb.WriteString(fmt.Sprintf("**_Вопрос ассистента: %s_**\n\n", interaction.Question))
-			
+
 			// Add the answer if it exists
 			if interaction.Answer.Valid {
 				sb.WriteString(fmt.Sprintf("%s\n\n", interaction.Answer.String))

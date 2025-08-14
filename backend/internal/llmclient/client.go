@@ -51,7 +51,7 @@ func New(config Config) Client {
 	if timeout == 0 {
 		timeout = 30 * time.Second // default timeout
 	}
-	
+
 	return &client{
 		config: config,
 		client: &http.Client{

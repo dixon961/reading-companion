@@ -38,10 +38,27 @@ stop:
 	@echo "Stopping the project..."
 	docker compose down
 
+# Production targets
+.PHONY: build-prod
+build-prod:
+	@echo "Building production images..."
+	docker compose -f docker-compose.prod.yml build
+
+.PHONY: run-prod
+run-prod:
+	@echo "Running production environment..."
+	docker compose -f docker-compose.prod.yml up -d
+
+.PHONY: stop-prod
+stop-prod:
+	@echo "Stopping production environment..."
+	docker compose -f docker-compose.prod.yml down
+
 # Test targets
 .PHONY: test
 test:
 	@echo "Running tests..."
+	cd backend && go test ./...
 
 # Lint targets
 .PHONY: lint
@@ -59,6 +76,12 @@ run-backend:
 run-frontend:
 	@echo "Running frontend service..."
 	cd frontend && npm run dev
+
+# Frontend build target
+.PHONY: build-frontend
+build-frontend:
+	@echo "Building frontend..."
+	cd frontend && npm run build
 
 # Database migration targets
 .PHONY: migrate-up

@@ -30,7 +30,7 @@ func (h *SessionHandler) CreateSession(w http.ResponseWriter, r *http.Request) {
 	// Parse multipart form with max memory of 10MB
 	err := r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to parse multipart form: %v", err), http.StatusBadRequest)
+		http.Error(w, "failed to parse multipart form: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -38,18 +38,33 @@ func (h *SessionHandler) CreateSession(w http.ResponseWriter, r *http.Request) {
 	sessionName := r.FormValue("session_name")
 
 	// Get file from form data
-	file, _, err := r.FormFile("file")
+	file, header, err := r.FormFile("file")
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to get file from form: %v", err), http.StatusBadRequest)
+		// Check if file was not provided
+		if err == http.ErrMissingFile {
+			http.Error(w, "Файл пуст или имеет неверный формат", http.StatusBadRequest)
+		} else {
+			http.Error(w, "failed to get file from form: "+err.Error(), http.StatusBadRequest)
+		}
 		return
 	}
 	defer file.Close()
 
+	// Check if file is empty
+	if header.Size == 0 {
+		http.Error(w, "Файл пуст или имеет неверный формат", http.StatusBadRequest)
+		return
+	}
+
 	// Create session using service
 	response, err := h.sessionService.CreateSession(file, sessionName)
 	if err != nil {
-		// Handle validation errors
-		http.Error(w, fmt.Sprintf("failed to create session: %v", err), http.StatusBadRequest)
+		// Handle validation errors with specific messages
+		if strings.Contains(err.Error(), "minimum 3 highlights required") {
+			http.Error(w, "Для начала сессии необходимо как минимум 3 пометки", http.StatusBadRequest)
+			return
+		}
+		http.Error(w, "failed to create session: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -93,7 +108,7 @@ func (h *SessionHandler) GetSession(w http.ResponseWriter, r *http.Request) {
 	var nextStep *models.NextStep
 	if len(highlights) > 0 {
 		firstHighlight := highlights[0]
-		
+
 		// For now, we'll use a placeholder question
 		// In a real implementation, this would come from the database or be generated
 		nextStep = &models.NextStep{
@@ -105,10 +120,10 @@ func (h *SessionHandler) GetSession(w http.ResponseWriter, r *http.Request) {
 
 	// Prepare response
 	response := struct {
-		ID              uuid.UUID      `json:"id"`
-		Name            string         `json:"name"`
-		Status          string         `json:"status"`
-		TotalHighlights int            `json:"total_highlights"`
+		ID              uuid.UUID        `json:"id"`
+		Name            string           `json:"name"`
+		Status          string           `json:"status"`
+		TotalHighlights int              `json:"total_highlights"`
 		NextStep        *models.NextStep `json:"next_step,omitempty"`
 	}{
 		ID:              session.ID,
@@ -128,7 +143,7 @@ func (h *SessionHandler) GetSession(w http.ResponseWriter, r *http.Request) {
 func (h *SessionHandler) ProcessAnswer(w http.ResponseWriter, r *http.Request) {
 	// Debug output to see if we're reaching this handler
 	fmt.Printf("ProcessAnswer handler called\n")
-	
+
 	// Extract session ID from URL path parameters
 	vars := mux.Vars(r)
 	sessionIDStr, ok := vars["session_id"]
@@ -136,9 +151,9 @@ func (h *SessionHandler) ProcessAnswer(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "session ID is required", http.StatusBadRequest)
 		return
 	}
-	
+
 	fmt.Printf("Session ID: %s\n", sessionIDStr)
-	
+
 	sessionID, err := uuid.Parse(sessionIDStr)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("invalid session ID: %v", err), http.StatusBadRequest)

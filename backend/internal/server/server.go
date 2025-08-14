@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/alex/reading-companion/internal/api"
+	"github.com/alex/reading-companion/internal/llmclient"
 	"github.com/alex/reading-companion/internal/repository"
 	"github.com/alex/reading-companion/internal/service"
-	"github.com/alex/reading-companion/internal/llmclient"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -49,7 +49,7 @@ func NewServer(port string) *Server {
 
 	// Create LLM client
 	var llmClient llmclient.Client
-	
+
 	// Check if LLM API key is provided
 	if os.Getenv("LLM_API_KEY") != "" {
 		// Use real LLM client when API key is provided
@@ -103,22 +103,22 @@ func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Allow requests from localhost:3000 (frontend)
 		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-		
+
 		// Allow common HTTP methods
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		
+
 		// Allow common headers
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-		
+
 		// Allow credentials
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
-		
+
 		// Handle preflight requests
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
-		
+
 		// Pass the request to the next handler
 		next.ServeHTTP(w, r)
 	})
@@ -136,10 +136,10 @@ func getEnv(key, defaultValue string) string {
 // Start starts the HTTP server
 func (s *Server) Start() {
 	log.Println("Server starting on port", s.httpServer.Addr)
-	
+
 	// Debug output to see if we can access the router
 	fmt.Println("Server routes registered")
-	
+
 	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Could not listen on port %s: %v", s.httpServer.Addr, err)
 	}

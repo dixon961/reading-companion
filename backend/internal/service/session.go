@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/alex/reading-companion/internal/llmclient"
 	"github.com/alex/reading-companion/internal/models"
 	"github.com/alex/reading-companion/internal/repository"
-	"github.com/alex/reading-companion/internal/llmclient"
 	"github.com/alex/reading-companion/pkg/markdown"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -79,11 +79,11 @@ func (s *SessionService) CreateSession(file multipart.File, sessionName string) 
 	if len(highlights) > 0 {
 		response.NextStep.HighlightIndex = 0
 		response.NextStep.HighlightText = highlights[0]
-		
+
 		// Generate question using LLM
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
-		
+
 		question, err := s.llm.GenerateQuestion(ctx, highlights[0])
 		if err != nil {
 			// Check if the error is due to LLM service unavailability
@@ -95,7 +95,7 @@ func (s *SessionService) CreateSession(file multipart.File, sessionName string) 
 			question = "What are your thoughts on this highlight?"
 		}
 		response.NextStep.Question = question
-		
+
 		// Create interaction for first highlight with generated question and null answer
 		// First get the highlight ID from database
 		dbHighlights, err := s.repo.GetHighlightsBySession(context.Background(), pgtype.UUID{Bytes: sessionID, Valid: true})
@@ -375,11 +375,11 @@ func (s *SessionService) ProcessAnswerAndGetNextStep(sessionID uuid.UUID, highli
 
 	// Generate question for next highlight
 	nextHighlight := highlights[nextIndex]
-	
+
 	// Generate question using LLM
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	
+
 	question, err = s.llm.GenerateQuestion(ctx, nextHighlight.Text)
 	if err != nil {
 		// Check if the error is due to LLM service unavailability
@@ -390,7 +390,7 @@ func (s *SessionService) ProcessAnswerAndGetNextStep(sessionID uuid.UUID, highli
 		// Fallback to placeholder question if LLM fails
 		question = "What are your thoughts on this highlight?"
 	}
-	
+
 	// Create interaction for next highlight with generated question and null answer
 	nextInteractionID := uuid.New()
 	nextInteractionParams := repository.CreateInteractionParams{
@@ -405,7 +405,7 @@ func (s *SessionService) ProcessAnswerAndGetNextStep(sessionID uuid.UUID, highli
 		// Log error but don't fail the request, since we can still return the question
 		fmt.Printf("Warning: failed to create interaction for next highlight: %v\n", err)
 	}
-	
+
 	return &models.ProcessAnswerResponse{
 		NextStep: &models.NextStep{
 			HighlightIndex: nextIndex,
@@ -434,7 +434,7 @@ func (s *SessionService) RegenerateQuestion(sessionID uuid.UUID, highlightIndex 
 	// Generate new question using LLM
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	
+
 	question, err := s.llm.RegenerateQuestion(ctx, currentHighlight.Text, "What are your thoughts on this highlight?")
 	if err != nil {
 		// Check if the error is due to LLM service unavailability
@@ -508,7 +508,7 @@ func (s *SessionService) ExportSessionAsMarkdown(sessionID uuid.UUID) (string, e
 			// Skip if no interaction found for this highlight
 			continue
 		}
-		
+
 		interactions[uuid.UUID(highlight.ID.Bytes).String()] = &models.Interaction{
 			ID:          uuid.UUID(interaction.ID.Bytes),
 			HighlightID: uuid.UUID(interaction.HighlightID.Bytes),

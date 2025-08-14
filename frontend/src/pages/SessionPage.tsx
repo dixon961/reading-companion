@@ -81,7 +81,12 @@ const SessionPage: React.FC = () => {
         });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to process answer');
+      // Check if this is a 503 error and show a user-friendly message
+      if (err instanceof Error && err.message.includes("LLM service unavailable")) {
+        setError("Сервис ИИ временно недоступен. Пожалуйста, попробуйте позже.");
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to process answer');
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -117,7 +122,12 @@ const SessionPage: React.FC = () => {
         });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to regenerate question');
+      // Check if this is a 503 error and show a user-friendly message
+      if (err instanceof Error && err.message.includes("LLM service unavailable")) {
+        setError("Сервис ИИ временно недоступен. Пожалуйста, попробуйте сгенерировать другой вопрос позже.");
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to regenerate question');
+      }
     } finally {
       setIsProcessing(false);
     }

@@ -260,3 +260,20 @@ export const getSessionContent = async (sessionId: string): Promise<SessionConte
 
   return response.json();
 };
+
+// Get session markdown content for review
+export const getSessionMarkdown = async (sessionId: string): Promise<string> => {
+  const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/markdown`, {
+    method: 'GET',
+    headers: {
+      'Accept': 'text/plain',
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to get session markdown: ${errorText}`);
+  }
+
+  return response.text();
+};

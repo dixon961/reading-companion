@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getSession, exportSession, downloadFile, getSessionContent } from '../api/session';
+import { getSession, exportSession, downloadFile, getSessionContent, getSessionMarkdown } from '../api/session';
 import TwoPanelLayout from '../components/TwoPanelLayout';
 import MarkdownRenderer from '../components/MarkdownRenderer';
 import type { SessionData, SessionContent } from '../api/session';
@@ -11,6 +11,7 @@ const SessionReviewPage: React.FC = () => {
   
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [sessionContent, setSessionContent] = useState<SessionContent | null>(null);
+  const [sessionMarkdown, setSessionMarkdown] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,9 +28,13 @@ const SessionReviewPage: React.FC = () => {
         const sessionInfo: SessionData = await getSession(sessionId);
         setSessionData(sessionInfo);
         
-        // Then get the full content for review
+        // Then get the JSON content for any additional processing if needed
         const content: SessionContent = await getSessionContent(sessionId);
         setSessionContent(content);
+        
+        // Finally get the markdown content for review
+        const markdown: string = await getSessionMarkdown(sessionId);
+        setSessionMarkdown(markdown);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load session data');
       } finally {
@@ -108,7 +113,7 @@ const SessionReviewPage: React.FC = () => {
         
         <main className="review-main">
           <div className="review-content">
-            <MarkdownRenderer content={sessionContent} />
+            <MarkdownRenderer markdown={sessionMarkdown} />
           </div>
           
           <div className="review-actions">

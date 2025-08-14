@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/alex/reading-companion/internal/api"
@@ -50,6 +51,12 @@ func NewServer(port string) *Server {
 	// Create LLM client
 	var llmClient llmclient.Client
 
+	maxTokensStr := getEnv("LLM_MAX_TOKENS", "100")
+	maxTokens, err := strconv.Atoi(maxTokensStr)
+	if err != nil {
+		fmt.Println("Invalid number for LLM_MAX_TOKENS, using default 100")
+		maxTokens = 100
+	}
 	// Check if LLM API key is provided
 	if os.Getenv("LLM_API_KEY") != "" {
 		// Use real LLM client when API key is provided
@@ -58,6 +65,7 @@ func NewServer(port string) *Server {
 			APIKey:      os.Getenv("LLM_API_KEY"),
 			Model:       getEnv("LLM_MODEL", "gpt-3.5-turbo"),
 			Timeout:     30, // seconds
+			MaxTokens:   maxTokens,
 		}
 		llmClient = llmclient.New(llmConfig)
 	} else {

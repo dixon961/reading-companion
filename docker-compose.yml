@@ -31,10 +31,16 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
       DB_PORT: 5432
+      LLM_API_ENDPOINT: "http://host.docker.internal:8090/v1/chat/completions"
+      LLM_API_KEY: "123"
+      LLM_MODEL: "/home/alex/models/Qwen3-4B-Instruct-2507-UD-Q2_K_XL.gguf"
+      LLM_MAX_TOKENS: 200
     depends_on:
       - postgres
     networks:
       - irc_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # Frontend service
   frontend:

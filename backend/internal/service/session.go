@@ -84,10 +84,35 @@ func (s *SessionService) CreateSession(file multipart.File, sessionName string) 
 		
 		question, err := s.llm.GenerateQuestion(ctx, highlights[0])
 		if err != nil {
+			// Check if the error is due to LLM service unavailability
+			if strings.Contains(err.Error(), "failed to get response after retries") {
+				// Return a 503 Service Unavailable error
+				return nil, fmt.Errorf("LLM service unavailable: %w", err)
+			}
 			// Fallback to placeholder question if LLM fails
 			question = "What are your thoughts on this highlight?"
 		}
 		response.NextStep.Question = question
+		
+		// Create interaction for first highlight with generated question and null answer
+		// First get the highlight ID from database
+		dbHighlights, err := s.repo.GetHighlightsBySession(context.Background(), pgtype.UUID{Bytes: sessionID, Valid: true})
+		if err == nil && len(dbHighlights) > 0 {
+			firstHighlight := dbHighlights[0]
+			interactionID := uuid.New()
+			interactionParams := repository.CreateInteractionParams{
+				ID:          pgtype.UUID{Bytes: interactionID, Valid: true},
+				HighlightID: firstHighlight.ID,
+				Question:    question,
+				Answer:      pgtype.Text{Valid: false}, // Null answer for now
+			}
+
+			_, err = s.repo.CreateInteraction(context.Background(), interactionParams)
+			if err != nil {
+				// Log error but don't fail the request, since we can still return the question
+				fmt.Printf("Warning: failed to create interaction for first highlight: %v\n", err)
+			}
+		}
 	}
 
 	return response, nil
@@ -284,18 +309,47 @@ func (s *SessionService) ProcessAnswerAndGetNextStep(sessionID uuid.UUID, highli
 	// Get the current highlight
 	currentHighlight := highlights[highlightIndex]
 
-	// Create a new interaction for this highlight
-	interactionID := uuid.New()
-	interactionParams := repository.CreateInteractionParams{
-		ID:          pgtype.UUID{Bytes: interactionID, Valid: true},
-		HighlightID: currentHighlight.ID,
-		Question:    "What are your thoughts on this highlight?", // Placeholder question, will be updated
-		Answer:      pgtype.Text{String: userAnswer, Valid: true},
+	// Generate question for current highlight (if not already generated)
+	// First check if there's already an interaction for this highlight
+	interactions, err := s.repo.GetInteractionsByHighlight(context.Background(), currentHighlight.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get interactions: %w", err)
 	}
 
-	_, err = s.repo.CreateInteraction(context.Background(), interactionParams)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create interaction: %w", err)
+	var question string
+	if len(interactions) > 0 {
+		// Use the question from the existing interaction
+		question = interactions[0].Question
+	} else {
+		// This shouldn't happen in normal flow, but just in case
+		question = "What are your thoughts on this highlight?"
+	}
+
+	// Create or update interaction for this highlight with the answer
+	if len(interactions) > 0 {
+		// Update existing interaction with answer
+		interaction := interactions[0]
+		_, err = s.repo.UpdateInteractionAnswer(context.Background(), repository.UpdateInteractionAnswerParams{
+			ID:     interaction.ID,
+			Answer: pgtype.Text{String: userAnswer, Valid: true},
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to update interaction: %w", err)
+		}
+	} else {
+		// Create new interaction (this is for the first call)
+		interactionID := uuid.New()
+		interactionParams := repository.CreateInteractionParams{
+			ID:          pgtype.UUID{Bytes: interactionID, Valid: true},
+			HighlightID: currentHighlight.ID,
+			Question:    question,
+			Answer:      pgtype.Text{String: userAnswer, Valid: true},
+		}
+
+		_, err = s.repo.CreateInteraction(context.Background(), interactionParams)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create interaction: %w", err)
+		}
 	}
 
 	// Determine next step
@@ -317,17 +371,37 @@ func (s *SessionService) ProcessAnswerAndGetNextStep(sessionID uuid.UUID, highli
 		}, nil
 	}
 
-	// Return next step
+	// Generate question for next highlight
 	nextHighlight := highlights[nextIndex]
 	
 	// Generate question using LLM
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	
-	question, err := s.llm.GenerateQuestion(ctx, nextHighlight.Text)
+	question, err = s.llm.GenerateQuestion(ctx, nextHighlight.Text)
 	if err != nil {
+		// Check if the error is due to LLM service unavailability
+		if strings.Contains(err.Error(), "failed to get response after retries") {
+			// Return a 503 Service Unavailable error
+			return nil, fmt.Errorf("LLM service unavailable: %w", err)
+		}
 		// Fallback to placeholder question if LLM fails
 		question = "What are your thoughts on this highlight?"
+	}
+	
+	// Create interaction for next highlight with generated question and null answer
+	nextInteractionID := uuid.New()
+	nextInteractionParams := repository.CreateInteractionParams{
+		ID:          pgtype.UUID{Bytes: nextInteractionID, Valid: true},
+		HighlightID: nextHighlight.ID,
+		Question:    question,
+		Answer:      pgtype.Text{Valid: false}, // Null answer for now
+	}
+
+	_, err = s.repo.CreateInteraction(context.Background(), nextInteractionParams)
+	if err != nil {
+		// Log error but don't fail the request, since we can still return the question
+		fmt.Printf("Warning: failed to create interaction for next highlight: %v\n", err)
 	}
 	
 	return &models.ProcessAnswerResponse{
@@ -339,7 +413,7 @@ func (s *SessionService) ProcessAnswerAndGetNextStep(sessionID uuid.UUID, highli
 	}, nil
 }
 
-// RegenerateQuestion generates a new question for a highlight
+// RegenerateQuestion generates a new question for a highlight and updates the database
 func (s *SessionService) RegenerateQuestion(sessionID uuid.UUID, highlightIndex int) (string, error) {
 	// Get the highlight by index
 	highlights, err := s.repo.GetHighlightsBySession(context.Background(), pgtype.UUID{Bytes: sessionID, Valid: true})
@@ -361,7 +435,45 @@ func (s *SessionService) RegenerateQuestion(sessionID uuid.UUID, highlightIndex 
 	
 	question, err := s.llm.RegenerateQuestion(ctx, currentHighlight.Text, "What are your thoughts on this highlight?")
 	if err != nil {
+		// Check if the error is due to LLM service unavailability
+		if strings.Contains(err.Error(), "failed to get response after retries") {
+			// Return a 503 Service Unavailable error
+			return "", fmt.Errorf("LLM service unavailable: %w", err)
+		}
 		return "", fmt.Errorf("failed to regenerate question: %w", err)
+	}
+
+	// Update the interaction with the new question
+	// First get existing interaction for this highlight
+	interactions, err := s.repo.GetInteractionsByHighlight(context.Background(), currentHighlight.ID)
+	if err != nil {
+		return "", fmt.Errorf("failed to get interactions: %w", err)
+	}
+
+	if len(interactions) > 0 {
+		// Update existing interaction with new question
+		interaction := interactions[0]
+		_, err = s.repo.UpdateInteractionQuestion(context.Background(), repository.UpdateInteractionQuestionParams{
+			ID:       interaction.ID,
+			Question: question,
+		})
+		if err != nil {
+			return "", fmt.Errorf("failed to update interaction: %w", err)
+		}
+	} else {
+		// Create new interaction with the regenerated question
+		interactionID := uuid.New()
+		interactionParams := repository.CreateInteractionParams{
+			ID:          pgtype.UUID{Bytes: interactionID, Valid: true},
+			HighlightID: currentHighlight.ID,
+			Question:    question,
+			Answer:      pgtype.Text{Valid: false}, // Null answer for now
+		}
+
+		_, err = s.repo.CreateInteraction(context.Background(), interactionParams)
+		if err != nil {
+			return "", fmt.Errorf("failed to create interaction: %w", err)
+		}
 	}
 
 	return question, nil

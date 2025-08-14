@@ -25,6 +25,14 @@ export interface ProcessAnswerRequest {
   user_answer: string;
 }
 
+export interface SessionMetadata {
+  id: string;
+  name: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface SessionData {
   id: string;
   name: string;
@@ -47,6 +55,22 @@ export interface RegenerateQuestionResponse {
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:9090/api';
 
+export const listSessions = async (): Promise<SessionMetadata[]> => {
+  const response = await fetch(`${API_BASE_URL}/sessions`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to list sessions: ${errorText}`);
+  }
+
+  return response.json();
+};
+
 export const createSession = async (file: File, sessionName?: string): Promise<CreateSessionResponse> => {
   const formData = new FormData();
   formData.append('file', file);
@@ -65,6 +89,46 @@ export const createSession = async (file: File, sessionName?: string): Promise<C
   }
 
   return response.json();
+};
+
+export interface UpdateSessionNameRequest {
+  name: string;
+}
+
+export interface UpdateSessionNameResponse {
+  id: string;
+  name: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export const updateSessionName = async (sessionId: string, data: UpdateSessionNameRequest): Promise<UpdateSessionNameResponse> => {
+  const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to update session name: ${errorText}`);
+  }
+
+  return response.json();
+};
+
+export const deleteSession = async (sessionId: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to delete session: ${errorText}`);
+  }
 };
 
 export const getSession = async (sessionId: string): Promise<SessionData> => {

@@ -201,6 +201,28 @@ func (q *Queries) GetInteraction(ctx context.Context, id pgtype.UUID) (Interacti
 	return i, err
 }
 
+const getInteractionByHighlight = `-- name: GetInteractionByHighlight :one
+SELECT id, highlight_id, question, answer, created_at, updated_at 
+FROM interactions 
+WHERE highlight_id = $1
+ORDER BY created_at DESC
+LIMIT 1
+`
+
+func (q *Queries) GetInteractionByHighlight(ctx context.Context, highlightID pgtype.UUID) (Interaction, error) {
+	row := q.db.QueryRow(ctx, getInteractionByHighlight, highlightID)
+	var i Interaction
+	err := row.Scan(
+		&i.ID,
+		&i.HighlightID,
+		&i.Question,
+		&i.Answer,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getInteractionsByHighlight = `-- name: GetInteractionsByHighlight :many
 SELECT id, highlight_id, question, answer, created_at, updated_at 
 FROM interactions 
@@ -299,6 +321,32 @@ type UpdateInteractionAnswerParams struct {
 
 func (q *Queries) UpdateInteractionAnswer(ctx context.Context, arg UpdateInteractionAnswerParams) (Interaction, error) {
 	row := q.db.QueryRow(ctx, updateInteractionAnswer, arg.ID, arg.Answer)
+	var i Interaction
+	err := row.Scan(
+		&i.ID,
+		&i.HighlightID,
+		&i.Question,
+		&i.Answer,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateInteractionQuestion = `-- name: UpdateInteractionQuestion :one
+UPDATE interactions 
+SET question = $2, updated_at = CURRENT_TIMESTAMP 
+WHERE id = $1
+RETURNING id, highlight_id, question, answer, created_at, updated_at
+`
+
+type UpdateInteractionQuestionParams struct {
+	ID       pgtype.UUID `json:"id"`
+	Question string      `json:"question"`
+}
+
+func (q *Queries) UpdateInteractionQuestion(ctx context.Context, arg UpdateInteractionQuestionParams) (Interaction, error) {
+	row := q.db.QueryRow(ctx, updateInteractionQuestion, arg.ID, arg.Question)
 	var i Interaction
 	err := row.Scan(
 		&i.ID,

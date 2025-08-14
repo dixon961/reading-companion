@@ -6,19 +6,48 @@ An application that helps you process and understand book highlights by engaging
 
 This application transforms the passive process of reviewing book highlights into an active, reflective dialogue. The system presents you with one highlight at a time and generates thought-provoking questions about it. Your answers are collected and compiled into a structured note file for use in personal knowledge bases.
 
-## Features
+## Current Status
 
-- Upload text files containing book highlights
+✅ **MVP Core Features Implemented**
+- Session creation and management
 - Interactive dialogue with AI for each highlight
-- Export processed highlights as structured notes
-- Session management to continue work later
+- Session history and continuation
+- Session editing and deletion
+- Basic UI for all core workflows
+
+🔄 **In Progress**
+- Markdown export functionality
+- Advanced session completion workflows
+- Enhanced UI/UX polish
 
 ## Technical Stack
 
 - **Backend**: Go (Golang) with Clean Architecture
-- **Frontend**: React (Vite)
+- **Frontend**: React (Vite) with TypeScript
 - **Database**: PostgreSQL
 - **Infrastructure**: Docker & Docker Compose
+- **AI Integration**: LLM client with OpenAI-compatible API support
+
+## Features
+
+### ✅ Core Functionality
+- Upload text files containing book highlights
+- Interactive dialogue with AI for each highlight
+- Export processed highlights as structured notes
+- Session management to continue work later
+- Session history browsing and management
+
+### ✅ Advanced Features
+- LLM-powered question generation
+- Session renaming and deletion
+- Session continuation from any point
+- Review of completed sessions
+- Responsive web interface
+
+### 🔄 Upcoming Features
+- Full Markdown export functionality
+- Enhanced session completion workflows
+- Additional session management capabilities
 
 ## Getting Started
 
@@ -28,6 +57,9 @@ git clone <repository-url>
 
 # Run the application
 make run
+
+# Or using Docker Compose directly
+docker compose up -d
 ```
 
 ## Development
@@ -39,3 +71,5 @@ For detailed development instructions, see [CONVENTIONS.md](CONVENTIONS.md) and 
 ## Project Management
 
 Development tasks are tracked in the [project_management](project_management/) directory.
+
+See [PROGRESS_SUMMARY.md](project_management/PROGRESS_SUMMARY.md) for current implementation status.

@@ -20,10 +20,12 @@ type Querier interface {
 	GetHighlight(ctx context.Context, id pgtype.UUID) (Highlight, error)
 	GetHighlightsBySession(ctx context.Context, sessionID pgtype.UUID) ([]Highlight, error)
 	GetInteraction(ctx context.Context, id pgtype.UUID) (Interaction, error)
+	GetInteractionByHighlight(ctx context.Context, highlightID pgtype.UUID) (Interaction, error)
 	GetInteractionsByHighlight(ctx context.Context, highlightID pgtype.UUID) ([]Interaction, error)
 	GetSession(ctx context.Context, id pgtype.UUID) (Session, error)
 	ListSessions(ctx context.Context) ([]Session, error)
 	UpdateInteractionAnswer(ctx context.Context, arg UpdateInteractionAnswerParams) (Interaction, error)
+	UpdateInteractionQuestion(ctx context.Context, arg UpdateInteractionQuestionParams) (Interaction, error)
 	UpdateSessionName(ctx context.Context, arg UpdateSessionNameParams) (Session, error)
 	UpdateSessionStatus(ctx context.Context, arg UpdateSessionStatusParams) error
 }

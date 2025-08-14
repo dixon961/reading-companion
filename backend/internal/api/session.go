@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/alex/reading-companion/internal/models"
 	"github.com/alex/reading-companion/internal/service"
@@ -198,6 +199,11 @@ func (h *SessionHandler) RegenerateQuestion(w http.ResponseWriter, r *http.Reque
 	// Regenerate question using service
 	newQuestion, err := h.sessionService.RegenerateQuestion(sessionID, req.HighlightIndex)
 	if err != nil {
+		// Handle LLM service unavailable errors
+		if strings.Contains(err.Error(), "LLM service unavailable") {
+			http.Error(w, fmt.Sprintf("LLM service unavailable: %v", err), http.StatusServiceUnavailable)
+			return
+		}
 		// Handle not found errors
 		if strings.Contains(err.Error(), "invalid highlight index") {
 			http.Error(w, fmt.Sprintf("session or highlight not found: %v", err), http.StatusNotFound)
@@ -218,4 +224,99 @@ func (h *SessionHandler) RegenerateQuestion(w http.ResponseWriter, r *http.Reque
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
+}
+
+// UpdateSessionName handles PATCH /api/sessions/{session_id}
+func (h *SessionHandler) UpdateSessionName(w http.ResponseWriter, r *http.Request) {
+	// Extract session ID from URL path parameters
+	vars := mux.Vars(r)
+	sessionIDStr, ok := vars["session_id"]
+	if !ok {
+		http.Error(w, "session ID is required", http.StatusBadRequest)
+		return
+	}
+
+	sessionID, err := uuid.Parse(sessionIDStr)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("invalid session ID: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parse JSON body
+	var req struct {
+		Name string `json:"name"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, fmt.Sprintf("failed to parse JSON: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// Update session name using service
+	updatedSession, err := h.sessionService.UpdateSessionName(sessionID, req.Name)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to update session name: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Send successful response
+	response := struct {
+		ID        uuid.UUID `json:"id"`
+		Name      string    `json:"name"`
+		Status    string    `json:"status"`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
+	}{
+		ID:        updatedSession.ID,
+		Name:      updatedSession.Name,
+		Status:    updatedSession.Status,
+		CreatedAt: updatedSession.CreatedAt,
+		UpdatedAt: updatedSession.UpdatedAt,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
+// DeleteSession handles DELETE /api/sessions/{session_id}
+func (h *SessionHandler) DeleteSession(w http.ResponseWriter, r *http.Request) {
+	// Extract session ID from URL path parameters
+	vars := mux.Vars(r)
+	sessionIDStr, ok := vars["session_id"]
+	if !ok {
+		http.Error(w, "session ID is required", http.StatusBadRequest)
+		return
+	}
+
+	sessionID, err := uuid.Parse(sessionIDStr)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("invalid session ID: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	// Delete session using service
+	err = h.sessionService.DeleteSession(sessionID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to delete session: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Send successful response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// ListSessions handles GET /api/sessions
+func (h *SessionHandler) ListSessions(w http.ResponseWriter, r *http.Request) {
+	// Get sessions using service
+	sessions, err := h.sessionService.ListSessions()
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to list sessions: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	// Send successful response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(sessions)
 }

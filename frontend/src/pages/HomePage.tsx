@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../components/Modal';
-import { createSession } from '../api/session';
+import SessionListItem from '../components/SessionListItem';
+import { createSession, listSessions, updateSessionName, deleteSession } from '../api/session';
+import type { SessionMetadata } from '../api/session';
 
 const HomePage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -9,7 +11,49 @@ const HomePage: React.FC = () => {
   const [sessionName, setSessionName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [sessions, setSessions] = useState<SessionMetadata[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [sessionsError, setSessionsError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  // Fetch sessions when component mounts
+  useEffect(() => {
+    fetchSessions();
+  }, []);
+
+  const fetchSessions = async () => {
+    setSessionsLoading(true);
+    setSessionsError(null);
+    
+    try {
+      const sessionList = await listSessions();
+      setSessions(sessionList);
+    } catch (err) {
+      setSessionsError(err instanceof Error ? err.message : 'Failed to load sessions');
+    } finally {
+      setSessionsLoading(false);
+    }
+  };
+
+  const handleRenameSession = async (sessionId: string, newName: string) => {
+    try {
+      await updateSessionName(sessionId, { name: newName });
+      // Refresh the session list
+      await fetchSessions();
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    try {
+      await deleteSession(sessionId);
+      // Refresh the session list
+      await fetchSessions();
+    } catch (err) {
+      throw err;
+    }
+  };
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => {
@@ -57,6 +101,37 @@ const HomePage: React.FC = () => {
         <button className="start-session-btn" onClick={openModal}>
           Start New Session
         </button>
+
+        <section className="session-history">
+          <h2>Session History</h2>
+          
+          {sessionsLoading ? (
+            <div className="loading-container">
+              <div className="spinner"></div>
+              <p>Loading sessions...</p>
+            </div>
+          ) : sessionsError ? (
+            <div className="error-container">
+              <p>Error loading sessions: {sessionsError}</p>
+              <button onClick={fetchSessions}>Retry</button>
+            </div>
+          ) : sessions.length > 0 ? (
+            <div className="session-list">
+              {sessions.map((session) => (
+                <SessionListItem 
+                  key={session.id} 
+                  session={session} 
+                  onRename={handleRenameSession}
+                  onDelete={handleDeleteSession}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <p>No sessions yet. Start a new session to begin.</p>
+            </div>
+          )}
+        </section>
       </main>
 
       <Modal isOpen={isModalOpen} onClose={closeModal}>
@@ -93,7 +168,7 @@ const HomePage: React.FC = () => {
                 Cancel
               </button>
               <button type="submit" disabled={isLoading}>
-                {isLoading ? 'Creating...' : 'Create Session'}
+                {isLoading ? <div className="small-spinner"></div> : 'Create Session'}
               </button>
             </div>
           </form>

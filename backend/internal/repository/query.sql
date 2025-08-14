@@ -59,6 +59,12 @@ SET answer = $2, updated_at = CURRENT_TIMESTAMP
 WHERE id = $1
 RETURNING id, highlight_id, question, answer, created_at, updated_at;
 
+-- name: UpdateInteractionQuestion :one
+UPDATE interactions 
+SET question = $2, updated_at = CURRENT_TIMESTAMP 
+WHERE id = $1
+RETURNING id, highlight_id, question, answer, created_at, updated_at;
+
 -- name: GetInteractionsByHighlight :many
 SELECT id, highlight_id, question, answer, created_at, updated_at 
 FROM interactions 
@@ -68,6 +74,13 @@ WHERE highlight_id = $1;
 SELECT id, highlight_id, question, answer, created_at, updated_at 
 FROM interactions 
 WHERE id = $1;
+
+-- name: GetInteractionByHighlight :one
+SELECT id, highlight_id, question, answer, created_at, updated_at 
+FROM interactions 
+WHERE highlight_id = $1
+ORDER BY created_at DESC
+LIMIT 1;
 
 -- name: DeleteInteractionsByHighlight :exec
 DELETE FROM interactions 

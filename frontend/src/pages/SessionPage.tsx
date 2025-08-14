@@ -130,6 +130,7 @@ const SessionPage: React.FC = () => {
     return (
       <div className="session-page">
         <div className="loading-container">
+          <div className="spinner"></div>
           <p>Loading session data...</p>
         </div>
       </div>
@@ -217,20 +218,20 @@ const SessionPage: React.FC = () => {
             disabled={isProcessing}
             className="secondary-btn"
           >
-            Skip
+            {isProcessing ? <div className="small-spinner"></div> : 'Skip'}
           </button>
           <button 
             onClick={handleRegenerateQuestion} 
             disabled={isProcessing}
             className="secondary-btn"
           >
-            Regenerate Question
+            {isProcessing ? <div className="small-spinner"></div> : 'Regenerate Question'}
           </button>
           <button 
             onClick={handleNext} 
             disabled={isProcessing}
           >
-            {isProcessing ? 'Processing...' : 'Next'}
+            {isProcessing ? <div className="small-spinner"></div> : 'Next'}
           </button>
         </div>
       </main>

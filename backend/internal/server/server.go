@@ -75,8 +75,11 @@ func NewServer(port string) *Server {
 
 	// Register routes
 	router.HandleFunc("/api/healthcheck", api.HealthCheckHandler).Methods("GET")
+	router.HandleFunc("/api/sessions", sessionHandler.ListSessions).Methods("GET")
 	router.HandleFunc("/api/sessions", sessionHandler.CreateSession).Methods("POST")
 	router.HandleFunc("/api/sessions/{session_id}", sessionHandler.GetSession).Methods("GET")
+	router.HandleFunc("/api/sessions/{session_id}", sessionHandler.UpdateSessionName).Methods("PATCH")
+	router.HandleFunc("/api/sessions/{session_id}", sessionHandler.DeleteSession).Methods("DELETE")
 	router.HandleFunc("/api/sessions/{session_id}/process", sessionHandler.ProcessAnswer).Methods("POST")
 	router.HandleFunc("/api/sessions/{session_id}/regenerate_question", sessionHandler.RegenerateQuestion).Methods("POST")
 

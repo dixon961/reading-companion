@@ -11,7 +11,7 @@
 
 ### Changed
 - Improved session completion workflow with export functionality
-- Enhanced session review page with dual rendering options
+- Fixed markdown renderer with proper parsing library for accurate formatting
 
 ## [1.0.0] - 2025-08-14
 
@@ -44,3 +44,4 @@
 - Database constraint violations
 - API endpoint routing
 - UI responsiveness on mobile devices
+- Markdown rendering accuracy with proper parsing library

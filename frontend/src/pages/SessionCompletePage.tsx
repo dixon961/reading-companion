@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getSession, exportSession, downloadFile } from '../api/session';
+import TwoPanelLayout from '../components/TwoPanelLayout';
 import type { SessionData } from '../api/session';
 
 const SessionCompletePage: React.FC = () => {
@@ -55,71 +56,79 @@ const SessionCompletePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="session-complete-page">
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Loading session data...</p>
+      <TwoPanelLayout>
+        <div className="session-complete-page">
+          <div className="loading-container">
+            <div className="spinner"></div>
+            <p>Loading session data...</p>
+          </div>
         </div>
-      </div>
+      </TwoPanelLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="session-complete-page">
-        <div className="error-container">
-          <h2>Error</h2>
-          <p>{error}</p>
-          <button onClick={() => navigate('/')}>Back to Home</button>
+      <TwoPanelLayout>
+        <div className="session-complete-page">
+          <div className="error-container">
+            <h2>Error</h2>
+            <p>{error}</p>
+            <button onClick={() => navigate('/')}>Back to Home</button>
+          </div>
         </div>
-      </div>
+      </TwoPanelLayout>
     );
   }
 
   if (!sessionData) {
     return (
-      <div className="session-complete-page">
-        <div className="error-container">
-          <h2>Error</h2>
-          <p>No session data available</p>
-          <button onClick={() => navigate('/')}>Back to Home</button>
+      <TwoPanelLayout>
+        <div className="session-complete-page">
+          <div className="error-container">
+            <h2>Error</h2>
+            <p>No session data available</p>
+            <button onClick={() => navigate('/')}>Back to Home</button>
+          </div>
         </div>
-      </div>
+      </TwoPanelLayout>
     );
   }
 
   return (
-    <div className="session-complete-page">
-      <header className="complete-header">
-        <h1>Сессия успешно завершена!</h1>
-        <p>Поздравляем! Вы успешно обработали все пометки из книги "{sessionData.name}".</p>
-      </header>
-      
-      <main className="complete-main">
-        <div className="success-icon">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M8 12l2 2 4-4"></path>
-          </svg>
-        </div>
+    <TwoPanelLayout>
+      <div className="session-complete-page">
+        <header className="complete-header">
+          <h1>Сессия успешно завершена!</h1>
+          <p>Поздравляем! Вы успешно обработали все пометки из книги "{sessionData.name}".</p>
+        </header>
         
-        <div className="session-stats">
-          <p><strong>{sessionData.total_highlights}</strong> пометок обработано</p>
-        </div>
-        
-        <div className="complete-actions">
-          <button onClick={handleDownloadSummary} className="primary-btn">
-            Скачать конспект (.md)
-          </button>
-          <button onClick={handleStartNewSession} className="secondary-btn">
-            Начать новую сессию
-          </button>
-          <button onClick={handleViewHistory} className="tertiary-btn">
-            Вернуться к истории
-          </button>
-        </div>
-      </main>
-    </div>
+        <main className="complete-main">
+          <div className="success-icon">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M8 12l2 2 4-4"></path>
+            </svg>
+          </div>
+          
+          <div className="session-stats">
+            <p><strong>{sessionData.total_highlights}</strong> пометок обработано</p>
+          </div>
+          
+          <div className="complete-actions">
+            <button onClick={handleDownloadSummary} className="primary-btn">
+              Скачать конспект (.md)
+            </button>
+            <button onClick={handleStartNewSession} className="secondary-btn">
+              Начать новую сессию
+            </button>
+            <button onClick={handleViewHistory} className="tertiary-btn">
+              Вернуться к истории
+            </button>
+          </div>
+        </main>
+      </div>
+    </TwoPanelLayout>
   );
 };
 

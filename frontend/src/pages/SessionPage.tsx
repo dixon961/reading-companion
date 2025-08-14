@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { processAnswer, getSession, regenerateQuestion } from '../api/session';
+import TwoPanelLayout from '../components/TwoPanelLayout';
 import type { CreateSessionResponse, ProcessAnswerRequest, ProcessAnswerResponse, SessionData, RegenerateQuestionRequest } from '../api/session';
 
 const SessionPage: React.FC = () => {
@@ -128,114 +129,124 @@ const SessionPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="session-page">
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Loading session data...</p>
+      <TwoPanelLayout>
+        <div className="session-page">
+          <div className="loading-container">
+            <div className="spinner"></div>
+            <p>Loading session data...</p>
+          </div>
         </div>
-      </div>
+      </TwoPanelLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="session-page">
-        <div className="error-container">
-          <h2>Error</h2>
-          <p>{error}</p>
-          <button onClick={() => navigate('/')}>Back to Home</button>
+      <TwoPanelLayout>
+        <div className="session-page">
+          <div className="error-container">
+            <h2>Error</h2>
+            <p>{error}</p>
+            <button onClick={() => navigate('/')}>Back to Home</button>
+          </div>
         </div>
-      </div>
+      </TwoPanelLayout>
     );
   }
 
   if (isSessionCompleted) {
     return (
-      <div className="session-page">
-        <div className="completion-container">
-          <h2>Session Completed!</h2>
-          <p>Your reading session has been successfully completed.</p>
-          <div className="completion-actions">
-            <button onClick={handleNewSession}>Start New Session</button>
+      <TwoPanelLayout>
+        <div className="session-page">
+          <div className="completion-container">
+            <h2>Session Completed!</h2>
+            <p>Your reading session has been successfully completed.</p>
+            <div className="completion-actions">
+              <button onClick={handleNewSession}>Start New Session</button>
+            </div>
           </div>
         </div>
-      </div>
+      </TwoPanelLayout>
     );
   }
 
   if (!sessionData) {
     return (
-      <div className="session-page">
-        <div className="error-container">
-          <h2>Error</h2>
-          <p>No session data available</p>
-          <button onClick={() => navigate('/')}>Back to Home</button>
+      <TwoPanelLayout>
+        <div className="session-page">
+          <div className="error-container">
+            <h2>Error</h2>
+            <p>No session data available</p>
+            <button onClick={() => navigate('/')}>Back to Home</button>
+          </div>
         </div>
-      </div>
+      </TwoPanelLayout>
     );
   }
 
   const progress = `${currentHighlightIndex + 1} of ${sessionData.total_highlights}`;
 
   return (
-    <div className="session-page">
-      <header className="session-header">
-        <h1>{sessionData.name}</h1>
-        <div className="progress-indicator">{progress}</div>
-      </header>
+    <TwoPanelLayout>
+      <div className="session-page">
+        <header className="session-header">
+          <h1>{sessionData.name}</h1>
+          <div className="progress-indicator">{progress}</div>
+        </header>
 
-      <main className="session-main">
-        <div className="highlight-container">
-          <h2>Highlight</h2>
-          <div className="highlight-text">
-            {sessionData.next_step?.highlight_text || 'No highlight text available'}
+        <main className="session-main">
+          <div className="highlight-container">
+            <h2>Highlight</h2>
+            <div className="highlight-text">
+              {sessionData.next_step?.highlight_text || 'No highlight text available'}
+            </div>
           </div>
-        </div>
 
-        <div className="question-container">
-          <h2>Question</h2>
-          <div className="question-text">
-            {sessionData.next_step?.question || 'No question available'}
+          <div className="question-container">
+            <h2>Question</h2>
+            <div className="question-text">
+              {sessionData.next_step?.question || 'No question available'}
+            </div>
           </div>
-        </div>
 
-        <div className="answer-container">
-          <h2>Your Answer</h2>
-          <textarea
-            value={userAnswer}
-            onChange={(e) => setUserAnswer(e.target.value)}
-            placeholder="Type your thoughts here..."
-            rows={5}
-            disabled={isProcessing}
-          />
-        </div>
+          <div className="answer-container">
+            <h2>Your Answer</h2>
+            <textarea
+              value={userAnswer}
+              onChange={(e) => setUserAnswer(e.target.value)}
+              placeholder="Type your thoughts here..."
+              rows={5}
+              disabled={isProcessing}
+            />
+          </div>
 
-        {error && <div className="error-message">{error}</div>}
+          {error && <div className="error-message">{error}</div>}
 
-        <div className="session-actions">
-          <button 
-            onClick={handleSkip} 
-            disabled={isProcessing}
-            className="secondary-btn"
-          >
-            {isProcessing ? <div className="small-spinner"></div> : 'Skip'}
-          </button>
-          <button 
-            onClick={handleRegenerateQuestion} 
-            disabled={isProcessing}
-            className="secondary-btn"
-          >
-            {isProcessing ? <div className="small-spinner"></div> : 'Regenerate Question'}
-          </button>
-          <button 
-            onClick={handleNext} 
-            disabled={isProcessing}
-          >
-            {isProcessing ? <div className="small-spinner"></div> : 'Next'}
-          </button>
-        </div>
-      </main>
-    </div>
+          <div className="session-actions">
+            <button 
+              onClick={handleSkip} 
+              disabled={isProcessing}
+              className="secondary-btn"
+            >
+              {isProcessing ? <div className="small-spinner"></div> : 'Skip'}
+            </button>
+            <button 
+              onClick={handleRegenerateQuestion} 
+              disabled={isProcessing}
+              className="secondary-btn"
+            >
+              {isProcessing ? <div className="small-spinner"></div> : 'Regenerate Question'}
+            </button>
+            <button 
+              onClick={handleNext} 
+              disabled={isProcessing}
+            >
+              {isProcessing ? <div className="small-spinner"></div> : 'Next'}
+            </button>
+          </div>
+        </main>
+      </div>
+    </TwoPanelLayout>
   );
 };
 

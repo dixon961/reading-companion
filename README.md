@@ -43,6 +43,7 @@ This application transforms the passive process of reviewing book highlights int
 - Session continuation from any point
 - Review of completed sessions
 - Responsive web interface
+- Two-panel layout for efficient workflow
 
 ### 🔄 Upcoming Features
 - Full Markdown export functionality

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getSession, exportSession, downloadFile } from '../api/session';
+import TwoPanelLayout from '../components/TwoPanelLayout';
 import type { SessionData } from '../api/session';
 
 const SessionReviewPage: React.FC = () => {
@@ -51,68 +52,76 @@ const SessionReviewPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="session-review-page">
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Loading session data...</p>
+      <TwoPanelLayout>
+        <div className="session-review-page">
+          <div className="loading-container">
+            <div className="spinner"></div>
+            <p>Loading session data...</p>
+          </div>
         </div>
-      </div>
+      </TwoPanelLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="session-review-page">
-        <div className="error-container">
-          <h2>Error</h2>
-          <p>{error}</p>
-          <button onClick={() => navigate('/')}>Back to Home</button>
+      <TwoPanelLayout>
+        <div className="session-review-page">
+          <div className="error-container">
+            <h2>Error</h2>
+            <p>{error}</p>
+            <button onClick={() => navigate('/')}>Back to Home</button>
+          </div>
         </div>
-      </div>
+      </TwoPanelLayout>
     );
   }
 
   if (!sessionData) {
     return (
-      <div className="session-review-page">
-        <div className="error-container">
-          <h2>Error</h2>
-          <p>No session data available</p>
-          <button onClick={() => navigate('/')}>Back to Home</button>
+      <TwoPanelLayout>
+        <div className="session-review-page">
+          <div className="error-container">
+            <h2>Error</h2>
+            <p>No session data available</p>
+            <button onClick={() => navigate('/')}>Back to Home</button>
+          </div>
         </div>
-      </div>
+      </TwoPanelLayout>
     );
   }
 
   return (
-    <div className="session-review-page">
-      <header className="review-header">
-        <h1>{sessionData.name}</h1>
-        <p className="session-status">Completed Session</p>
-      </header>
-      
-      <main className="review-main">
-        <div className="review-content">
-          <h2>Session Summary</h2>
-          <p>Total highlights processed: {sessionData.total_highlights}</p>
-          
-          {/* TODO: Add actual session review content here */}
-          <div className="review-placeholder">
-            <p>Detailed session review content will be displayed here.</p>
-            <p>This will include all the questions and answers from your session.</p>
-          </div>
-        </div>
+    <TwoPanelLayout>
+      <div className="session-review-page">
+        <header className="review-header">
+          <h1>{sessionData.name}</h1>
+          <p className="session-status">Completed Session</p>
+        </header>
         
-        <div className="review-actions">
-          <button onClick={handleDownload} className="download-btn">
-            Download Summary (.md)
-          </button>
-          <button onClick={handleNewSession}>
-            Start New Session
-          </button>
-        </div>
-      </main>
-    </div>
+        <main className="review-main">
+          <div className="review-content">
+            <h2>Session Summary</h2>
+            <p>Total highlights processed: {sessionData.total_highlights}</p>
+            
+            {/* TODO: Add actual session review content here */}
+            <div className="review-placeholder">
+              <p>Detailed session review content will be displayed here.</p>
+              <p>This will include all the questions and answers from your session.</p>
+            </div>
+          </div>
+          
+          <div className="review-actions">
+            <button onClick={handleDownload} className="download-btn">
+              Download Summary (.md)
+            </button>
+            <button onClick={handleNewSession}>
+              Start New Session
+            </button>
+          </div>
+        </main>
+      </div>
+    </TwoPanelLayout>
   );
 };
 

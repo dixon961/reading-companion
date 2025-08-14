@@ -2,6 +2,15 @@
 
 ## Completed Features
 
+### ✅ UI/UX Features (06-Finalization)
+
+#### ✅ Feature 1: Responsive Design for Mobile Devices (01-Feature-Responsive-Design.md)
+- [x] (Frontend): Задача 1.1: Проверить и адаптировать верстку `HomePage.tsx`, включая список сессий и модальное окно, для мобильных экранов.
+- [x] (Frontend): Задача 1.2: Проверить и адаптировать верстку `SessionPage.tsx`. Убедиться, что поле ввода текста и кнопки удобны для использования на сенсорных экранах.
+- [x] (Frontend): Задача 1.3: Проверить и адаптировать верстку `SessionReviewPage.tsx`, обеспечив читаемость диалога на узких экранах.
+- [x] (Frontend): Задача 1.4: Проверить и адаптировать верстку `SessionCompletePage.tsx`.
+- [x] (Frontend): Задача 1.5: Использовать CSS media queries для применения стилей в зависимости от ширины экрана.
+
 ### ✅ Session Management Features (04-Session-Management)
 
 #### ✅ Feature 1: Session History List (01-Feature-Session-History-List.md)
@@ -43,6 +52,17 @@
 - [x] (Frontend): Задача 4.6: Реализовать вызов API для переименования.
 - [x] (Frontend): Задача 4.7: Реализовать модальное окно с подтверждением удаления.
 - [x] (Frontend): Задача 4.8: Обновить список сессий после операции.
+
+### ✅ Finalization Features (06-Finalization)
+
+#### ✅ Feature 1: Two-Panel Layout (02-Feature-Two-Panel-Layout.md)
+- [x] (Frontend): Задача 2.1: Создать компонент двухпанельного макета с боковой панелью для списка сессий.
+- [x] (Frontend): Задача 2.2: Адаптировать `HomePage.tsx` для использования нового макета.
+- [x] (Frontend): Задача 2.3: Адаптировать `SessionPage.tsx` для использования нового макета.
+- [x] (Frontend): Задача 2.4: Адаптировать `SessionReviewPage.tsx` для использования нового макета.
+- [x] (Frontend): Задача 2.5: Адаптировать `SessionCompletePage.tsx` для использования нового макета.
+- [x] (Frontend): Задача 2.6: Обновить стили для реализации двухпанельного дизайна.
+- [x] (Frontend): Задача 2.7: Обеспечить адаптивность нового макета для мобильных устройств.
 
 ### ✅ Session Completion and Export Features (05-Session-Completion-Export)
 

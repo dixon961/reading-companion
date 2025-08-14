@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { SessionMetadata } from '../api/session';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../i18n/LanguageContext';
 
 interface SessionListItemProps {
   session: SessionMetadata;
@@ -14,10 +15,12 @@ const SessionListItem: React.FC<SessionListItemProps> = ({ session, onRename, on
   const [editName, setEditName] = useState(session.name);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const { t, language } = useLanguage();
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('ru-RU', {
+    // Use the current language for date formatting
+    return date.toLocaleDateString(language === 'ru' ? 'ru-RU' : 'en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -40,9 +43,9 @@ const SessionListItem: React.FC<SessionListItemProps> = ({ session, onRename, on
   const getStatusText = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'Завершена';
+        return t('common.completed');
       case 'in_progress':
-        return 'В процессе';
+        return t('common.inProgress');
       default:
         return status;
     }
@@ -76,7 +79,7 @@ const SessionListItem: React.FC<SessionListItemProps> = ({ session, onRename, on
       await onRename(session.id, editName.trim());
       setIsEditing(false);
     } catch (err) {
-      alert('Failed to rename session: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      alert(`${t('common.error')} renaming session: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setIsProcessing(false);
     }
@@ -93,7 +96,7 @@ const SessionListItem: React.FC<SessionListItemProps> = ({ session, onRename, on
       await onDelete(session.id);
       setShowDeleteConfirm(false);
     } catch (err) {
-      alert('Failed to delete session: ' + (err instanceof Error ? err.message : 'Unknown error'));
+      alert(`${t('common.error')} deleting session: ${err instanceof Error ? err.message : 'Unknown error'}`);
       setIsProcessing(false);
     }
   };
@@ -108,22 +111,22 @@ const SessionListItem: React.FC<SessionListItemProps> = ({ session, onRename, on
       <div className="session-list-item" onClick={(e) => e.stopPropagation()}>
         <div className="delete-confirm-overlay">
           <div className="delete-confirm-content">
-            <h3>Удалить сессию?</h3>
-            <p>Вы уверены, что хотите удалить сессию "{session.name}"? Это действие нельзя отменить.</p>
+            <h3>{t('common.confirmDelete')}</h3>
+            <p>{t('common.confirmDeleteMessage').replace('{session.name}', session.name)}</p>
             <div className="delete-confirm-actions">
               <button 
                 onClick={handleCancelDelete} 
                 disabled={isProcessing}
                 className="secondary-btn"
               >
-                Отмена
+                {t('common.cancel')}
               </button>
               <button 
                 onClick={handleDeleteConfirm} 
                 disabled={isProcessing}
                 className="danger-btn"
               >
-                {isProcessing ? 'Удаление...' : 'Удалить'}
+                {isProcessing ? `${t('common.delete')}...` : t('common.delete')}
               </button>
             </div>
           </div>
@@ -150,13 +153,13 @@ const SessionListItem: React.FC<SessionListItemProps> = ({ session, onRename, on
               disabled={isProcessing}
               className="secondary-btn"
             >
-              Отмена
+              {t('common.cancel')}
             </button>
             <button 
               type="submit" 
               disabled={isProcessing || editName.trim() === '' || editName === session.name}
             >
-              {isProcessing ? 'Сохранение...' : 'Сохранить'}
+              {isProcessing ? `${t('common.save')}...` : t('common.save')}
             </button>
           </div>
         </form>
@@ -178,7 +181,7 @@ const SessionListItem: React.FC<SessionListItemProps> = ({ session, onRename, on
       <div className="session-actions">
         <button 
           className="icon-button" 
-          aria-label="Переименовать"
+          aria-label={t('common.edit')}
           onClick={handleRenameClick}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -187,7 +190,7 @@ const SessionListItem: React.FC<SessionListItemProps> = ({ session, onRename, on
         </button>
         <button 
           className="icon-button" 
-          aria-label="Удалить"
+          aria-label={t('common.delete')}
           onClick={handleDeleteClick}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

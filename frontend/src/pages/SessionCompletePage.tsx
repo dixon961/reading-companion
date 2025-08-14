@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getSession, exportSession, downloadFile } from '../api/session';
 import TwoPanelLayout from '../components/TwoPanelLayout';
 import type { SessionData } from '../api/session';
+import { useLanguage } from '../i18n/LanguageContext';
 
 const SessionCompletePage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
+  const { t } = useLanguage();
+  const refreshSessionListRef = useRef<(() => void) | null>(null);
   
   const [sessionData, setSessionData] = React.useState<SessionData | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -15,7 +18,7 @@ const SessionCompletePage: React.FC = () => {
   React.useEffect(() => {
     const fetchSessionData = async () => {
       if (!sessionId) {
-        setError('No session ID provided');
+        setError(t('errors.generic'));
         setIsLoading(false);
         return;
       }
@@ -23,15 +26,19 @@ const SessionCompletePage: React.FC = () => {
       try {
         const sessionInfo: SessionData = await getSession(sessionId);
         setSessionData(sessionInfo);
+        // Refresh the session list to update the status
+        if (refreshSessionListRef.current) {
+          refreshSessionListRef.current();
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load session data');
+        setError(err instanceof Error ? err.message : t('errors.generic'));
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchSessionData();
-  }, [sessionId]);
+  }, [sessionId, t]);
 
   const handleDownloadSummary = async () => {
     if (!sessionId) return;
@@ -41,8 +48,8 @@ const SessionCompletePage: React.FC = () => {
       const filename = `${sessionData?.name || 'session'}_export.md`;
       downloadFile(markdownContent, filename);
     } catch (err) {
-      console.error('Failed to download summary:', err);
-      alert('Failed to download summary. Please try again.');
+      console.error(t('errors.generic'), err);
+      alert(t('complete.downloadError'));
     }
   };
 
@@ -56,11 +63,11 @@ const SessionCompletePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <TwoPanelLayout>
+      <TwoPanelLayout onSessionListRefresh={() => { refreshSessionListRef.current = () => window.location.reload(); }}>
         <div className="session-complete-page">
           <div className="loading-container">
             <div className="spinner"></div>
-            <p>Loading session data...</p>
+            <p>{t('common.loading')}</p>
           </div>
         </div>
       </TwoPanelLayout>
@@ -69,12 +76,12 @@ const SessionCompletePage: React.FC = () => {
 
   if (error) {
     return (
-      <TwoPanelLayout>
+      <TwoPanelLayout onSessionListRefresh={() => { refreshSessionListRef.current = () => window.location.reload(); }}>
         <div className="session-complete-page">
           <div className="error-container">
-            <h2>Error</h2>
+            <h2>{t('common.error')}</h2>
             <p>{error}</p>
-            <button onClick={() => navigate('/')}>Back to Home</button>
+            <button onClick={() => navigate('/')} className="secondary-btn">{t('common.back')}</button>
           </div>
         </div>
       </TwoPanelLayout>
@@ -83,12 +90,12 @@ const SessionCompletePage: React.FC = () => {
 
   if (!sessionData) {
     return (
-      <TwoPanelLayout>
+      <TwoPanelLayout onSessionListRefresh={() => { refreshSessionListRef.current = () => window.location.reload(); }}>
         <div className="session-complete-page">
           <div className="error-container">
-            <h2>Error</h2>
-            <p>No session data available</p>
-            <button onClick={() => navigate('/')}>Back to Home</button>
+            <h2>{t('common.error')}</h2>
+            <p>{t('session.noSessionData')}</p>
+            <button onClick={() => navigate('/')} className="secondary-btn">{t('common.back')}</button>
           </div>
         </div>
       </TwoPanelLayout>
@@ -96,11 +103,11 @@ const SessionCompletePage: React.FC = () => {
   }
 
   return (
-    <TwoPanelLayout>
+    <TwoPanelLayout onSessionListRefresh={() => { refreshSessionListRef.current = () => window.location.reload(); }}>
       <div className="session-complete-page">
         <header className="complete-header">
-          <h1>Сессия успешно завершена!</h1>
-          <p>Поздравляем! Вы успешно обработали все пометки из книги "{sessionData.name}".</p>
+          <h1>{t('complete.sessionCompleted')}</h1>
+          <p>{t('complete.congratulations').replace('{sessionData.name}', sessionData.name)}</p>
         </header>
         
         <main className="complete-main">
@@ -112,18 +119,18 @@ const SessionCompletePage: React.FC = () => {
           </div>
           
           <div className="session-stats">
-            <p><strong>{sessionData.total_highlights}</strong> пометок обработано</p>
+            <p><strong>{sessionData.total_highlights}</strong> {t('complete.highlightsProcessed')}</p>
           </div>
           
           <div className="complete-actions">
             <button onClick={handleDownloadSummary} className="primary-btn">
-              Скачать конспект (.md)
+              {t('complete.downloadSummary')}
             </button>
             <button onClick={handleStartNewSession} className="secondary-btn">
-              Начать новую сессию
+              {t('common.startNewSession')}
             </button>
             <button onClick={handleViewHistory} className="tertiary-btn">
-              Вернуться к истории
+              {t('complete.backToHistory')}
             </button>
           </div>
         </main>

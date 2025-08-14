@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import Modal from '../components/Modal';
 import TwoPanelLayout from '../components/TwoPanelLayout';
 import { createSession } from '../api/session';
+import { useLanguage } from '../i18n/LanguageContext';
+import CustomFileInput from '../components/CustomFileInput';
 
 const HomePage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -11,6 +13,7 @@ const HomePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => {
@@ -30,7 +33,7 @@ const HomePage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
-      setError('Please select a file');
+      setError(t('home.uploadFile'));
       return;
     }
 
@@ -41,50 +44,49 @@ const HomePage: React.FC = () => {
       const response = await createSession(file, sessionName);
       navigate(`/session/${response.session_id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create session');
+      setError(err instanceof Error ? err.message : t('errors.generic'));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <TwoPanelLayout>
+    <TwoPanelLayout onSessionListRefresh={() => {}}>
       <div className="home-page">
         <header className="home-header">
-          <h1>Interactive Reading Companion</h1>
-          <p>Transform your book highlights into meaningful insights</p>
+          <h1>{t('home.title')}</h1>
+          <p>{t('home.subtitle')}</p>
         </header>
         
         <main className="home-main">
           <button className="start-session-btn" onClick={openModal}>
-            Start New Session
+            {t('home.startNewSession')}
           </button>
         </main>
 
         <Modal isOpen={isModalOpen} onClose={closeModal}>
           <div className="session-form">
-            <h2>Create New Session</h2>
+            <h2>{t('home.createSession')}</h2>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label htmlFor="file">Upload Highlights File (.txt)</label>
-                <input
-                  type="file"
+                <label htmlFor="file">{t('home.uploadFile')}</label>
+                <CustomFileInput
                   id="file"
                   accept=".txt"
                   onChange={handleFileChange}
                   required
                 />
-                <p className="help-text">Supported: Kon-Tiki 2 export format</p>
+                <p className="help-text">{t('home.supportedFormats')}</p>
               </div>
 
               <div className="form-group">
-                <label htmlFor="sessionName">Session Name (Optional)</label>
+                <label htmlFor="sessionName">{t('home.sessionName')}</label>
                 <input
                   type="text"
                   id="sessionName"
                   value={sessionName}
                   onChange={(e) => setSessionName(e.target.value)}
-                  placeholder="Leave blank to auto-generate"
+                  placeholder={t('home.sessionNamePlaceholder')}
                 />
               </div>
 
@@ -92,10 +94,10 @@ const HomePage: React.FC = () => {
 
               <div className="form-actions">
                 <button type="button" onClick={closeModal} disabled={isLoading}>
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" disabled={isLoading}>
-                  {isLoading ? <div className="small-spinner"></div> : 'Create Session'}
+                  {isLoading ? <div className="small-spinner"></div> : t('home.createSession')}
                 </button>
               </div>
             </form>

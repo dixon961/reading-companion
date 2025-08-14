@@ -1,18 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getSession, exportSession, downloadFile, getSessionContent, getSessionMarkdown } from '../api/session';
 import TwoPanelLayout from '../components/TwoPanelLayout';
 import MarkdownRenderer from '../components/MarkdownRenderer';
 import type { SessionData, SessionContent } from '../api/session';
+import { useLanguage } from '../i18n/LanguageContext';
 
 // Component to render session content from JSON
-const JSONRenderer: React.FC<{ content: SessionContent }> = ({ content }) => {
+const JSONRenderer: React.FC<{ content: SessionContent; language: string }> = ({ content, language }) => {
   return (
     <div className="json-renderer">
       <header className="json-header">
         <h1>{content.session.name}</h1>
         <p className="session-date">
-          Дата разбора: {new Date(content.session.created_at).toLocaleDateString('ru-RU')}
+          {language === 'ru' ? 'Дата разбора: ' : 'Review Date: '}
+          {new Date(content.session.created_at).toLocaleDateString(language === 'ru' ? 'ru-RU' : 'en-US')}
         </p>
       </header>
       
@@ -27,7 +29,8 @@ const JSONRenderer: React.FC<{ content: SessionContent }> = ({ content }) => {
             
             <div className="interaction-container">
               <p className="question-text">
-                <strong>Вопрос ассистента:</strong> {highlight.question}
+                <strong>{language === 'ru' ? 'Вопрос ассистента:' : 'Assistant Question:'} </strong> 
+                {highlight.question}
               </p>
               
               {highlight.answered ? (
@@ -35,7 +38,9 @@ const JSONRenderer: React.FC<{ content: SessionContent }> = ({ content }) => {
                   <p className="answer-text">{highlight.answer}</p>
                 </div>
               ) : (
-                <p className="unanswered-text">Ответ не предоставлен</p>
+                <p className="unanswered-text">
+                  {language === 'ru' ? 'Ответ не предоставлен' : 'No answer provided'}
+                </p>
               )}
             </div>
             
@@ -52,6 +57,8 @@ const JSONRenderer: React.FC<{ content: SessionContent }> = ({ content }) => {
 const SessionReviewPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
+  const { t, language } = useLanguage();
+  const refreshSessionListRef = useRef<(() => void) | null>(null);
   
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [sessionContent, setSessionContent] = useState<SessionContent | null>(null);
@@ -63,7 +70,7 @@ const SessionReviewPage: React.FC = () => {
   useEffect(() => {
     const fetchSessionData = async () => {
       if (!sessionId) {
-        setError('No session ID provided');
+        setError(t('errors.generic'));
         setIsLoading(false);
         return;
       }
@@ -80,15 +87,20 @@ const SessionReviewPage: React.FC = () => {
         // Finally get the markdown content for review
         const markdown: string = await getSessionMarkdown(sessionId);
         setSessionMarkdown(markdown);
+        
+        // Refresh the session list to update the status
+        if (refreshSessionListRef.current) {
+          refreshSessionListRef.current();
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load session data');
+        setError(err instanceof Error ? err.message : t('errors.generic'));
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchSessionData();
-  }, [sessionId]);
+  }, [sessionId, t]);
 
   const handleDownload = async () => {
     if (!sessionId) return;
@@ -98,8 +110,8 @@ const SessionReviewPage: React.FC = () => {
       const filename = `${sessionData?.name || 'session'}_export.md`;
       downloadFile(markdownContent, filename);
     } catch (err) {
-      console.error('Failed to download summary:', err);
-      alert('Failed to download summary. Please try again.');
+      console.error(t('errors.generic'), err);
+      alert(t('review.downloadError'));
     }
   };
 
@@ -113,11 +125,11 @@ const SessionReviewPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <TwoPanelLayout>
+      <TwoPanelLayout onSessionListRefresh={() => { refreshSessionListRef.current = () => window.location.reload(); }}>
         <div className="session-review-page">
           <div className="loading-container">
             <div className="spinner"></div>
-            <p>Loading session data...</p>
+            <p>{t('common.loading')}</p>
           </div>
         </div>
       </TwoPanelLayout>
@@ -126,12 +138,12 @@ const SessionReviewPage: React.FC = () => {
 
   if (error) {
     return (
-      <TwoPanelLayout>
+      <TwoPanelLayout onSessionListRefresh={() => { refreshSessionListRef.current = () => window.location.reload(); }}>
         <div className="session-review-page">
           <div className="error-container">
-            <h2>Error</h2>
+            <h2>{t('common.error')}</h2>
             <p>{error}</p>
-            <button onClick={() => navigate('/')}>Back to Home</button>
+            <button onClick={() => navigate('/')} className="secondary-btn">{t('common.back')}</button>
           </div>
         </div>
       </TwoPanelLayout>
@@ -140,12 +152,12 @@ const SessionReviewPage: React.FC = () => {
 
   if (!sessionData || !sessionContent) {
     return (
-      <TwoPanelLayout>
+      <TwoPanelLayout onSessionListRefresh={() => { refreshSessionListRef.current = () => window.location.reload(); }}>
         <div className="session-review-page">
           <div className="error-container">
-            <h2>Error</h2>
-            <p>No session data available</p>
-            <button onClick={() => navigate('/')}>Back to Home</button>
+            <h2>{t('common.error')}</h2>
+            <p>{t('session.noSessionData')}</p>
+            <button onClick={() => navigate('/')} className="secondary-btn">{t('common.back')}</button>
           </div>
         </div>
       </TwoPanelLayout>
@@ -153,11 +165,11 @@ const SessionReviewPage: React.FC = () => {
   }
 
   return (
-    <TwoPanelLayout>
+    <TwoPanelLayout onSessionListRefresh={() => { refreshSessionListRef.current = () => window.location.reload(); }}>
       <div className="session-review-page">
         <header className="review-header">
           <h1>{sessionData.name}</h1>
-          <p className="session-status">Completed Session</p>
+          <p className="session-status">{t('common.completed')}</p>
         </header>
         
         <main className="review-main">
@@ -166,13 +178,13 @@ const SessionReviewPage: React.FC = () => {
               onClick={toggleViewMode} 
               className="toggle-view-btn"
             >
-              Switch to {viewMode === 'json' ? 'Markdown' : 'JSON'} View
+              {viewMode === 'json' ? t('review.switchToMarkdown') : t('review.switchToJSON')}
             </button>
           </div>
           
           <div className="review-content">
             {viewMode === 'json' ? (
-              <JSONRenderer content={sessionContent} />
+              <JSONRenderer content={sessionContent} language={language} />
             ) : (
               <MarkdownRenderer markdown={sessionMarkdown} />
             )}
@@ -180,10 +192,10 @@ const SessionReviewPage: React.FC = () => {
           
           <div className="review-actions">
             <button onClick={handleDownload} className="download-btn">
-              Download Summary (.md)
+              {t('review.downloadSummary')}
             </button>
-            <button onClick={handleNewSession}>
-              Start New Session
+            <button onClick={handleNewSession} className="secondary-btn">
+              {t('common.startNewSession')}
             </button>
           </div>
         </main>

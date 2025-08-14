@@ -1,0 +1,82 @@
+{
+  "common": {
+    "appName": "Интерактивный компаньон для чтения",
+    "loading": "Загрузка...",
+    "error": "Ошибка",
+    "retry": "Повторить",
+    "cancel": "Отмена",
+    "save": "Сохранить",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "close": "Закрыть",
+    "back": "Назад",
+    "next": "Далее",
+    "skip": "Пропустить",
+    "download": "Скачать",
+    "startNewSession": "Начать новую сессию",
+    "sessionHistory": "История сессий",
+    "viewSession": "Просмотреть сессию",
+    "continueSession": "Продолжить сессию",
+    "completed": "Завершена",
+    "inProgress": "В процессе",
+    "sessionCompleted": "Сессия успешно завершена!",
+    "sessionInProgress": "Сессия в процессе",
+    "noSessions": "Нет сессий",
+    "noSessionsMessage": "Начните новую сессию, чтобы начать работу.",
+    "confirmDelete": "Подтвердить удаление",
+    "confirmDeleteMessage": "Вы уверены, что хотите удалить эту сессию?",
+    "yes": "Да",
+    "no": "Нет",
+    "ok": "ОК"
+  },
+  "home": {
+    "title": "Добро пожаловать в Интерактивный компаньон для чтения",
+    "subtitle": "Преобразуйте свои пометки из книг в осмысленные знания",
+    "startNewSession": "Начать новую сессию",
+    "sessionHistory": "История сессий",
+    "uploadFile": "Загрузить файл",
+    "chooseFile": "Выбрать файл",
+    "noFileChosen": "Файл не выбран",
+    "sessionName": "Название сессии (опционально)",
+    "sessionNamePlaceholder": "Оставьте пустым для автогенерации",
+    "supportedFormats": "Поддерживаемые форматы: .txt (экспорт из Kon-Tiki 2)",
+    "createSession": "Создать сессию"
+  },
+  "session": {
+    "highlight": "Пометка",
+    "question": "Вопрос",
+    "yourAnswer": "Ваш ответ",
+    "regenerateQuestion": "Сгенерировать другой вопрос",
+    "sessionProgress": "Прогресс сессии",
+    "of": "из",
+    "noHighlightText": "Текст пометки недоступен",
+    "noQuestion": "Вопрос недоступен",
+    "answerPlaceholder": "Введите свои мысли здесь...",
+    "sessionCompletedMessage": "Ваша сессия чтения была успешно завершена.",
+    "noSessionData": "Данные сессии недоступны"
+  },
+  "review": {
+    "reviewSession": "Обзор сессии",
+    "sessionDate": "Дата разбора",
+    "downloadSummary": "Скачать конспект (.md)",
+    "backToHome": "Вернуться к истории",
+    "switchToMarkdown": "Переключиться на просмотр Markdown",
+    "switchToJSON": "Переключиться на просмотр JSON",
+    "downloadError": "Не удалось скачать конспект. Пожалуйста, попробуйте еще раз."
+  },
+  "complete": {
+    "sessionCompleted": "Сессия успешно завершена!",
+    "congratulations": "Поздравляем! Вы успешно обработали все пометки из книги \"{sessionData.name}\".",
+    "highlightsProcessed": "пометок обработано",
+    "downloadSummary": "Скачать конспект (.md)",
+    "startNewSession": "Начать новую сессию",
+    "backToHistory": "Вернуться к истории",
+    "downloadError": "Не удалось скачать конспект. Пожалуйста, попробуйте еще раз."
+  },
+  "errors": {
+    "fileEmpty": "Файл пуст или имеет неверный формат",
+    "insufficientHighlights": "Для начала сессии необходимо как минимум 3 пометки",
+    "llmUnavailable": "Сервис ИИ временно недоступен. Пожалуйста, попробуйте позже.",
+    "generic": "Произошла ошибка. Пожалуйста, попробуйте еще раз."
+  }
+}

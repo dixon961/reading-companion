@@ -180,3 +180,36 @@ export const regenerateQuestion = async (sessionId: string, data: RegenerateQues
 
   return response.json();
 };
+
+export const exportSession = async (sessionId: string): Promise<string> => {
+  const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/export`, {
+    method: 'GET',
+    headers: {
+      'Accept': 'text/markdown',
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to export session: ${errorText}`);
+  }
+
+  return response.text();
+};
+
+// Utility function to download content as a file
+export const downloadFile = (content: string, filename: string) => {
+  const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  
+  document.body.appendChild(link);
+  link.click();
+  
+  // Clean up
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};

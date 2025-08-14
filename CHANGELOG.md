@@ -4,9 +4,12 @@
 
 ### Added
 - Session completion page UI
-- Markdown export backend (in progress)
-- File download frontend (in progress)
-- Enhanced navigation after session completion (in progress)
+- Markdown export backend
+- File download frontend
+- Enhanced navigation after session completion
+
+### Changed
+- Improved session completion workflow with export functionality
 
 ## [1.0.0] - 2025-08-14
 

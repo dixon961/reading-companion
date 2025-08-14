@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getSession } from '../api/session';
+import { getSession, exportSession, downloadFile } from '../api/session';
 import type { SessionData } from '../api/session';
 
 const SessionCompletePage: React.FC = () => {
@@ -32,9 +32,17 @@ const SessionCompletePage: React.FC = () => {
     fetchSessionData();
   }, [sessionId]);
 
-  const handleDownloadSummary = () => {
-    // TODO: Implement actual download logic
-    alert('Download functionality will be implemented in a future update');
+  const handleDownloadSummary = async () => {
+    if (!sessionId) return;
+    
+    try {
+      const markdownContent = await exportSession(sessionId);
+      const filename = `${sessionData?.name || 'session'}_export.md`;
+      downloadFile(markdownContent, filename);
+    } catch (err) {
+      console.error('Failed to download summary:', err);
+      alert('Failed to download summary. Please try again.');
+    }
   };
 
   const handleStartNewSession = () => {

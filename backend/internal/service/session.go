@@ -3,6 +3,7 @@ package service
 import (
 	"bufio"
 	"context"
+	"database/sql"
 	"fmt"
 	"mime/multipart"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/alex/reading-companion/internal/models"
 	"github.com/alex/reading-companion/internal/repository"
 	"github.com/alex/reading-companion/internal/llmclient"
+	"github.com/alex/reading-companion/pkg/markdown"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
@@ -477,4 +479,70 @@ func (s *SessionService) RegenerateQuestion(sessionID uuid.UUID, highlightIndex 
 	}
 
 	return question, nil
+}
+
+// ExportSessionAsMarkdown exports a completed session as a markdown document
+func (s *SessionService) ExportSessionAsMarkdown(sessionID uuid.UUID) (string, error) {
+	// Get the session
+	session, err := s.repo.GetSession(context.Background(), pgtype.UUID{Bytes: sessionID, Valid: true})
+	if err != nil {
+		return "", fmt.Errorf("session not found: %w", err)
+	}
+
+	// Check if session is completed
+	if session.Status != "completed" {
+		return "", fmt.Errorf("session not completed: only completed sessions can be exported")
+	}
+
+	// Get highlights for this session
+	highlights, err := s.repo.GetHighlightsBySession(context.Background(), pgtype.UUID{Bytes: sessionID, Valid: true})
+	if err != nil {
+		return "", fmt.Errorf("failed to get highlights: %w", err)
+	}
+
+	// Get interactions for all highlights
+	interactions := make(map[string]*models.Interaction)
+	for _, highlight := range highlights {
+		interaction, err := s.repo.GetInteractionByHighlight(context.Background(), highlight.ID)
+		if err != nil {
+			// Skip if no interaction found for this highlight
+			continue
+		}
+		
+		interactions[uuid.UUID(highlight.ID.Bytes).String()] = &models.Interaction{
+			ID:          uuid.UUID(interaction.ID.Bytes),
+			HighlightID: uuid.UUID(interaction.HighlightID.Bytes),
+			Question:    interaction.Question,
+			Answer: sql.NullString{
+				String: interaction.Answer.String,
+				Valid:  interaction.Answer.Valid,
+			},
+			CreatedAt: interaction.CreatedAt.Time.Format(time.RFC3339),
+			UpdatedAt: interaction.UpdatedAt.Time.Format(time.RFC3339),
+		}
+	}
+
+	// Convert repository highlights to models highlights
+	modelHighlights := make([]*models.Highlight, len(highlights))
+	for i, highlight := range highlights {
+		modelHighlights[i] = &models.Highlight{
+			ID:        uuid.UUID(highlight.ID.Bytes),
+			SessionID: uuid.UUID(highlight.SessionID.Bytes),
+			Text:      highlight.Text,
+			Position:  int(highlight.Position),
+			CreatedAt: highlight.CreatedAt.Time,
+		}
+	}
+
+	// Convert repository session to models session
+	modelSession := &models.Session{
+		ID:        uuid.UUID(session.ID.Bytes),
+		Name:      session.Name,
+		Status:    session.Status,
+		CreatedAt: session.CreatedAt.Time,
+		UpdatedAt: session.UpdatedAt.Time,
+	}
+
+	// Generate markdown
+	return markdown.GenerateMarkdown(modelSession, modelHighlights, interactions), nil
 }

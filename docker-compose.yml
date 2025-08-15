@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:15
+    container_name: irc_postgres
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - irc_network
+
+  # Backend service
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: irc_backend
+    ports:
+      - "${BACKEND_PORT}:8080"
+    environment:
+      PORT: 8080
+      DB_HOST: postgres
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: 5432
+      LLM_API_ENDPOINT: "http://host.docker.internal:8090/v1/chat/completions"
+      LLM_API_KEY: "123"
+      LLM_MODEL: "/home/alex/models/Qwen3-4B-Instruct-2507-UD-Q2_K_XL.gguf"
+      LLM_MAX_TOKENS: 200
+    depends_on:
+      - postgres
+    networks:
+      - irc_network
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Frontend service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: irc_frontend
+    ports:
+      - "${FRONTEND_PORT}:80"
+    depends_on:
+      - backend
+    networks:
+      - irc_network
+
+# Define named volumes
+volumes:
+  postgres_data:
+
+# Define networks
+networks:
+  irc_network:
+    driver: bridge

@@ -13,6 +13,9 @@ import (
 	"github.com/alex/reading-companion/internal/llmclient"
 	"github.com/alex/reading-companion/internal/repository"
 	"github.com/alex/reading-companion/internal/service"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -30,23 +33,11 @@ func NewServer(port string) *Server {
 		port = "9090"
 	}
 
-	// Database connection
-	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_PASSWORD"),
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_NAME"))
+	// Database connection with retry mechanism
+	db := connectToDatabaseWithRetry()
 
-	db, err := pgxpool.New(context.Background(), dbURL)
-	if err != nil {
-		log.Fatalf("Unable to connect to database: %v", err)
-	}
-
-	// Test the connection
-	if err := db.Ping(context.Background()); err != nil {
-		log.Fatalf("Unable to ping database: %v", err)
-	}
+	// Run database migrations
+	runMigrations()
 
 	// Create LLM client
 	var llmClient llmclient.Client
@@ -153,6 +144,73 @@ func (s *Server) Start() {
 	if err := s.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Could not listen on port %s: %v", s.httpServer.Addr, err)
 	}
+}
+
+// connectToDatabaseWithRetry attempts to connect to the database with retries
+func connectToDatabaseWithRetry() *pgxpool.Pool {
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME"))
+
+	// Retry connection up to 10 times with 3 second delays
+	var db *pgxpool.Pool
+	var err error
+
+	for i := 0; i < 10; i++ {
+		db, err = pgxpool.New(context.Background(), dbURL)
+		if err != nil {
+			log.Printf("Unable to connect to database (attempt %d): %v", i+1, err)
+			time.Sleep(3 * time.Second)
+			continue
+		}
+
+		// Test the connection
+		err = db.Ping(context.Background())
+		if err != nil {
+			log.Printf("Unable to ping database (attempt %d): %v", i+1, err)
+			db.Close()
+			time.Sleep(3 * time.Second)
+			continue
+		}
+
+		log.Println("Successfully connected to database")
+		return db
+	}
+
+	log.Fatalf("Unable to connect to database after 10 attempts: %v", err)
+	return nil
+}
+
+// runMigrations applies database migrations
+func runMigrations() {
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME"))
+
+	// Use the absolute path to migrations directory
+	// When running in Docker, the migrations will be in /root/migrations
+	// When running locally, they will be in backend/migrations
+	migrationPath := "file:///root/migrations"
+	if _, err := os.Stat("backend/migrations"); err == nil {
+		migrationPath = "file://backend/migrations"
+	}
+
+	m, err := migrate.New(migrationPath, dbURL)
+	if err != nil {
+		log.Fatalf("Unable to create migration instance: %v", err)
+	}
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Fatalf("Unable to apply migrations: %v", err)
+	}
+
+	log.Println("Database migrations applied successfully")
 }
 
 // Stop gracefully shuts down the HTTP server

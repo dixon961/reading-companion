@@ -451,6 +451,11 @@ func (h *SessionHandler) ListSessions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Ensure we return an empty array instead of null when there are no sessions
+	if sessions == nil {
+		sessions = []*models.SessionMetadata{}
+	}
+
 	// Send successful response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
